@@ -1,0 +1,276 @@
+<!-- ------------------------------ДОРАБОТАТЬ------------------------------- -->
+
+<!DOCTYPE html>
+<html lang="ru" data-bs-theme="dark" style="--bs-body-bg: #0d1117; ">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/frontend/static/style.css">
+    <title>ВЕКТОР - редактирование идеи</title>
+</head>
+<body>
+
+    <header class="py-3 mb-3 border-bottom">
+        <div class="container-fluid d-grid gap-3 align-items-center" style="grid-template-columns: 1fr 2fr;">
+            <div class="dropdown">
+                
+               <a href="#">
+                    <img src="/frontend/static/img/logo.png" alt="ВЕКТОР" height="42">
+                </a>
+                
+            </div>
+            <div class="d-flex align-items-center">
+                
+            <form class="flex-grow-1 me-3" role="search">
+                <div class="input-group search-group">
+                    <input
+                        type="search"
+                        class="form-control search-input"
+                        placeholder="Поиск идей..."
+                        aria-label="Поиск идей"
+                    >
+                    <button class="btn search-button" type="submit" aria-label="Найти">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+            </form>
+
+                <div class="flex-shrink-0 dropdown"> 
+                    <a href="#"
+                        class="d-block link-body-emphasis text-decoration-none dropdown-toggle" data-bs-toggle="dropdown"
+                        aria-expanded="false"> 
+                        <img
+                                src="/frontend/static/img/avatar.jpg"
+                                alt="Аватар пользователя"
+                                class="rounded-circle flex-shrink-0"
+                                width="32"
+                                height="32"
+                                style="object-fit: cover;"
+                            >
+                    </a>
+
+                    <ul class="dropdown-menu text-small shadow">
+                        <li><a class="dropdown-item" href="#">Профиль</a></li>
+                        <li><a class="dropdown-item" href="#">Настройки</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container px-2 px-md-3">
+        <h1 class="h3 mb-2">Редактирование идеи</h1>
+        <p class="text-secondary mb-4">Обнови описание идеи, нужные роли и материалы.</p>
+    
+        <form action="/ideas/{{ idea.id }}/edit" method="POST" class="p-3 p-md-4 rounded-4 border"
+            style="background:#161b22;">
+    
+            <div class="mb-3">
+                <label for="title" class="form-label">Название</label>
+                <input class="form-control" id="title" name="title" maxlength="150" required value="{{ idea.title }}">
+            </div>
+    
+            <div class="mb-3">
+                <label for="short_description" class="form-label">Краткое описание</label>
+                <textarea class="form-control" id="short_description" name="short_description" rows="2" maxlength="300"
+                    required>{{ idea.short_description }}</textarea>
+            </div>
+    
+            <div class="mb-3">
+                <label for="description" class="form-label">Подробное описание</label>
+                <textarea class="form-control" id="description" name="description" rows="5"
+                    required>{{ idea.description }}</textarea>
+            </div>
+    
+            <div class="mb-4">
+                <label for="role_input" class="form-label">Нужные роли</label>
+                <div class="input-group">
+                    <input class="form-control" id="role_input" placeholder="Например, Python-разработчик">
+                    <button class="btn btn-outline-primary" type="button" id="add_role">
+                        <i class="bi bi-plus-lg"></i> Добавить тег
+                    </button>
+                </div>
+    
+                <div id="role_tags" class="d-flex flex-wrap gap-2 mt-2">
+                    {% for role in idea.roles %}
+                    <span class="idea-tag">
+                        <span>{{ role.name }}</span>
+                        <button type="button" class="btn-close btn-close-white" style="font-size:.6rem"
+                            aria-label="Удалить {{ role.name }}"></button>
+                    </span>
+                    {% endfor %}
+                </div>
+    
+                <div id="role_error" class="small text-danger mt-2" role="alert"></div>
+                <div id="role_hidden">
+                    {% for role in idea.roles %}
+                    <input type="hidden" name="roles" value="{{ role.name }}">
+                    {% endfor %}
+                </div>
+            </div>
+    
+            <div class="mb-3">
+                <label class="form-label">Ссылки на материалы</label>
+                <div id="links_container" class="d-flex flex-column gap-2">
+                    {% for link in idea.reference_links %}
+                    <div class="input-group">
+                        <input class="form-control" name="reference_links" type="url" placeholder="https://..."
+                            pattern="https?://.+" title="Укажите ссылку, начинающуюся с http:// или https://"
+                            value="{{ link }}">
+                        <button class="btn btn-outline-secondary" type="button" aria-label="Удалить ссылку">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                    {% endfor %}
+                </div>
+    
+                <button class="btn btn-sm btn-outline-secondary mt-2" type="button" id="add_link">
+                    <i class="bi bi-plus-lg me-1"></i> Добавить ссылку
+                </button>
+            </div>
+    
+            <div class="mb-3">
+                <label for="deadline" class="form-label">Дедлайн</label>
+                <input class="form-control" type="date" id="deadline" name="deadline"
+                    value="{{ idea.deadline.isoformat() if idea.deadline else '' }}">
+                <div class="form-text">Необязательно.</div>
+            </div>
+    
+            <div class="mb-4">
+                <label for="region" class="form-label">Регион проведения</label>
+                <input class="form-control" id="region" name="region" placeholder="Например, Рига"
+                    value="{{ idea.region or '' }}">
+                <div class="form-text">Оставь пустым, если проект проходит онлайн.</div>
+            </div>
+    
+            <div class="d-flex flex-column flex-sm-row justify-content-end gap-2">
+                <a href="/ideas" class="btn btn-outline-secondary">Отмена</a>
+                <button class="btn btn-primary" type="submit">
+                    <i class="bi bi-check-circle me-1"></i> Сохранить изменения
+                </button>
+            </div>
+        </form>
+    </main>
+    
+    <script>
+        const roleInput = document.getElementById("role_input");
+        const roleTags = document.getElementById("role_tags");
+        const roleHidden = document.getElementById("role_hidden");
+        const roleError = document.getElementById("role_error");
+        const roles = new Set();
+
+        document.getElementById("add_role").addEventListener("click", () => {
+            const role = roleInput.value.trim();
+            if (!role) return;
+
+            // TODO: позже проверять роль по списку, полученному с сервера.
+            if (roles.has(role.toLowerCase())) {
+                roleError.textContent = "Такая роль уже добавлена.";
+                return;
+            }
+
+            roles.add(role.toLowerCase());
+            roleError.textContent = "";
+
+            const tag = document.createElement("span");
+            tag.className = "idea-tag";
+
+            const label = document.createElement("span");
+            label.textContent = role;
+
+            const remove = document.createElement("button");
+            remove.type = "button";
+            remove.className = "btn-close btn-close-white";
+            remove.style.fontSize = ".6rem";
+            remove.setAttribute("aria-label", "Удалить " + role);
+            remove.addEventListener("click", () => {
+                roles.delete(role.toLowerCase());
+                tag.remove();
+                hidden.remove();
+            });
+
+            const hidden = document.createElement("input");
+            hidden.type = "hidden";
+            hidden.name = "roles";
+            hidden.value = role;
+            roleHidden.appendChild(hidden);
+
+            tag.append(label, remove);
+            roleTags.appendChild(tag);
+            roleInput.value = "";
+        });
+
+        roleInput.addEventListener("keydown", event => {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                document.getElementById("add_role").click();
+            }
+        });
+
+        document.getElementById("add_link").addEventListener("click", () => {
+            const group = document.createElement("div");
+            group.className = "input-group";
+
+            const input = document.createElement("input");
+            input.className = "form-control";
+            input.name = "reference_links";
+            input.type = "url";
+            input.placeholder = "https://...";
+            input.pattern = "https?://.+";
+            input.title = "Укажите ссылку, начинающуюся с http:// или https://";
+
+            const remove = document.createElement("button");
+            remove.type = "button";
+            remove.className = "btn btn-outline-secondary";
+            remove.setAttribute("aria-label", "Удалить ссылку");
+            remove.innerHTML = '<i class="bi bi-trash"></i>';
+            remove.addEventListener("click", () => group.remove());
+
+            group.append(input, remove);
+            document.getElementById("links_container").appendChild(group);
+            input.focus();
+        });
+    </script>
+
+    <nav class="bottom-navbar">
+        <a href="/" class="bottom-nav-item active">
+            <i class="bi bi-house-door"></i>
+            <span>Главная</span>
+        </a>
+    
+        <a href="/ideas/create" class="bottom-nav-item">
+            <i class="bi bi-plus-circle"></i>
+            <span>Мои идеи</span>
+        </a>
+    
+        <a href="/organizations" class="bottom-nav-item">
+            <i class="bi bi-card-checklist"></i>
+            <span>Мероприятия</span>
+        </a>
+    </nav>
+
+
+    <script>
+        const header = document.querySelector("header");
+        let lastScrollY = window.scrollY;
+
+        window.addEventListener("scroll", () => {
+            const currentScrollY = window.scrollY;
+
+            if (currentScrollY < 80) {
+                header.classList.remove("header-hidden");
+            } else if (currentScrollY > lastScrollY) {
+                header.classList.add("header-hidden");
+            } else if (currentScrollY < lastScrollY) {
+                header.classList.remove("header-hidden");
+            }
+
+            lastScrollY = currentScrollY;
+        }, { passive: true });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
