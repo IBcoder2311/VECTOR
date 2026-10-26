@@ -52,7 +52,59 @@ delete_event	       Удаляет мероприятие
 
 
 # USERS
+async def create_user(
+    session: AsyncSession,
+    max_id: str,
+    name: str,
+    img="frontend/static/img/avatar.jpg",
+    status="user",
+):
+    item = Users(
+        max_id=max_id,
+        name=name,
+        img=img,
+        status=status,
+        skills=[],
+        urls=[],
+    )
+    session.add(item)
+    await session.commit()
+    await session.refresh(item)
 
+    return item
+
+async def get_user_by_id(session: AsyncSession, user_id: int):
+    result = await session.execute(
+        select(Users).where(Users.id==user_id)
+    )
+    return result.scalar_one_or_none()
+
+async def get_user_by_max_id(session: AsyncSession, max_id: str):
+    result = await session.execute(
+        select(Users).where(Users.max_id==max_id)
+    )
+    return result.scalar_one_or_none()
+
+async def update_user(session: AsyncSession, user_id: int, **updates):
+    user = await session.get(Users, user_id)
+
+    allowed_fields = {"name", "description", "img", "skills", "urls"}
+
+    if user is None:
+        return None
+
+    if not updates:
+        return user
+    
+    for field, value in updates.items():
+        if field not in allowed_fields:
+            raise ValueError(f"Нельзя обновлять поле: {field}")
+        setattr(user, field, value)
+
+    await session.commit()
+    await session.refresh(user)
+
+    return user
 
 # IDEAS
 
