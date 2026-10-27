@@ -12,7 +12,7 @@ DATABASE_URL = config.create_url_db()
 
 engine = create_async_engine(
     DATABASE_URL,
-    echo=True,
+    echo=False,
 )
 
 SessionFactory = async_sessionmaker(

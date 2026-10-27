@@ -97,12 +97,6 @@ class Ideas(Base):
         nullable=False
     )
 
-    views: Mapped[int] = mapped_column(
-        Integer,
-        default=0,
-        nullable=False
-    )
-
     deadline: Mapped[str | None] = mapped_column(
         String,
         nullable=True
@@ -125,7 +119,7 @@ class Responses(Base):
     )
 
     id_idea: Mapped[int] = mapped_column(
-        ForeignKey("ideas.id"),
+        ForeignKey("ideas.id", ondelete="CASCADE"),
         nullable=False
     )
 
