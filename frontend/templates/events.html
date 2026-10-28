@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1 class="mb-3">Мероприятия</h1>
+
+<!-- Когда пусто -->
+
+<!--
+<div class="text-center py-5">
+    <img
+        src="/static/img/fox/fox_question.png"
+        alt="Спящая лиса"
+        class="empty-state-fox mb-3"
+    >
+
+    <h4>Пока нет мероприятий</h4>
+    <p class="text-secondary mb-4">
+        Здесь будут появляться встречи, хакатоны и другие события.
+    </p>
+</div>
+-->
+
+<!-- Когда есть контент -->
+
+<div class="card">
+    <div class="card-body">
+
+        <h5 class="card-title">Название мероприятия</h5>
+
+        <hr>
+
+        <p class="card-text">
+            Краткое описание мероприятия и того, что ждёт участников.
+        </p>
+
+        <div class="d-flex flex-wrap gap-3 mt-3 text-secondary">
+            <small>
+                <i class="bi bi-calendar-event"></i>
+                15 ноября 2026
+            </small>
+
+            <small>
+                <i class="bi bi-geo-alt"></i>
+                Вильнюс
+            </small>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mt-3">
+            <small class="text-secondary">
+                <i class="bi bi-building"></i>
+                Организатор
+            </small>
+
+            <a href="/events/123" class="btn btn-outline-primary btn-sm">
+                Подробнее <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}
