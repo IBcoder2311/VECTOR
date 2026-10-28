@@ -1,55 +1,7 @@
-from sqlalchemy import select, update
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models import Users, Ideas, Responses, Events
-
-"""
-Базовые команды:
-1. Пользователи — Users
-
-Функция	               Что делает
-
-create_user	           Создаёт пользователя при первом входе через MAX
-get_user_by_id	       Находит пользователя по внутреннему ID
-get_user_by_max_id	   Находит пользователя по ID в MAX
-update_user	           Обновляет имя, описание, аватар, навыки, ссылки
-delete_user	           На всякий случай
-
-2. Идеи — Ideas
-
-Функция	               Что делает
-
-create_idea	           Создаёт идею от имени пользователя
-get_idea_by_id         Получает одну идею
-get_ideas	           Получает список идей для каталога
-get_ideas_by_owner	   Получает идеи конкретного пользователя
-update_idea	           Изменяет описание, роли, дедлайн и другие поля
-delete_idea	           Удаляет идею
-increment_idea_views   Увеличивает счётчик просмотров
-
-3. Отклики — Responses
-
-Функция	               Что делает
-
-create_response	       Создаёт отклик на идею
-get_response_by_id	   Получает конкретный отклик
-get_responses_by_idea  Показывает отклики на идею её владельцу
-get_responses_by_user  Показывает отклики пользователя
-delete_response	       Удаляет отклик
-
-4. Мероприятия — Events
-
-Функция	               Что делает
-
-create_event	       Создаёт мероприятие
-get_event_by_id	       Получает одно мероприятие
-get_events	           Получает список мероприятий
-get_events_by_owner	   Получает мероприятия организации
-update_event	       Изменяет мероприятие
-delete_event	       Удаляет мероприятие
-
-"""
-
 
 # USERS
 async def create_user(
@@ -161,6 +113,36 @@ async def create_idea(
 
     return item
 
+async def get_ideas(
+    session: AsyncSession,
+    page: int = 1,
+    per_page: int = 20
+):
+    if page < 1 or not 1 <= per_page <= 100:
+        raise ValueError("Некорректные параметры пагинации")
+
+    offset = (page - 1) * per_page
+
+    result = await session.execute(
+        select(Ideas)
+        .order_by(Ideas.id.desc())
+        .offset(offset)
+        .limit(per_page)
+    )
+
+    return result.scalars().all()
+
+async def get_random_ideas(
+    session: AsyncSession,
+    limit: int = 40
+):
+    result = await session.execute(
+        select(Ideas)
+        .order_by(func.random())
+        .limit(limit)
+    )
+    return result.scalars().all()
+
 async def get_idea_by_id(session: AsyncSession, idea_id: int):
     result = await session.execute(
         select(Ideas).where(Ideas.id==idea_id)
@@ -210,5 +192,171 @@ async def delete_idea(session: AsyncSession, idea_id: int):
 
 # RESPONSES
 
+async def create_response(
+    session: AsyncSession,
+    id_idea: int,
+    id_user: int,
+    description=""
+):
+    item = Responses(
+        id_idea=id_idea,
+        id_user=id_user,
+        description=description
+    )
+    
+    session.add(item)
+    await session.commit()
+    await session.refresh(item)
+
+    return item
+
+async def get_response_by_id(
+    session: AsyncSession,
+    id: int
+):
+    result = await session.execute(
+        select(Responses).where(Responses.id==id)
+    )
+    return result.scalar_one_or_none()
+
+async def get_responses_by_idea(
+    session: AsyncSession,
+    id_idea: int
+):
+    result = await session.execute(
+        select(Responses).where(Responses.id_idea==id_idea)
+    )
+    return result.scalars().all()
+
+async def get_responses_by_user(
+    session: AsyncSession,
+    id_user: int
+):
+    result = await session.execute(
+        select(Responses).where(Responses.id_user==id_user)
+    )
+    return result.scalars().all()
+
+async def delete_response(
+    session: AsyncSession,
+    response_id: int
+):
+    response = await session.get(Responses, response_id)
+    
+    if response is None:
+        return False
+
+    await session.delete(response)
+    await session.commit()
+
+    return True
+
 
 # EVENTS
+
+async def create_event(
+    session: AsyncSession,
+    owner_id: int,
+    img: str,
+    name: str,
+    short_description: str,
+    long_description: str,
+    region: str | None,
+    urls: list[dict]
+):
+    item = Events(
+        owner=owner_id,
+        img=img,
+        name=name,
+        short_description=short_description,
+        long_description=long_description,
+        region=region,
+        urls=urls
+    )
+
+    session.add(item)
+    await session.commit()
+    await session.refresh(item)
+
+    return item
+
+async def get_event_by_id(
+    session: AsyncSession,
+    event_id: int
+):
+    result = await session.execute(
+        select(Events).where(Events.id == event_id)
+    )
+    return result.scalar_one_or_none()
+
+async def get_events(
+    session: AsyncSession,
+    limit: int = 20,
+    offset: int = 0
+):
+    result = await session.execute(
+        select(Events)
+        .order_by(Events.id.desc())
+        .offset(offset)
+        .limit(limit)
+    )
+    return result.scalars().all()
+
+async def get_events_by_owner(
+    session: AsyncSession,
+    owner_id: int
+):
+    result = await session.execute(
+        select(Events).where(Events.owner == owner_id)
+    )
+    return result.scalars().all()
+
+
+async def update_event(
+    session: AsyncSession,
+    event_id: int,
+    **updates
+):
+    event = await session.get(Events, event_id)
+
+    allowed_fields = {
+        "img",
+        "name",
+        "short_description",
+        "long_description",
+        "region",
+        "urls",
+    }
+
+    if event is None:
+        return None
+
+    if not updates:
+        return event
+
+    for field in updates:
+        if field not in allowed_fields:
+            raise ValueError(f"Нельзя обновлять поле: {field}")
+
+    for field, value in updates.items():
+        setattr(event, field, value)
+
+    await session.commit()
+    await session.refresh(event)
+
+    return event
+
+
+async def delete_event(
+    session: AsyncSession,
+    event_id: int
+):
+    event = await session.get(Events, event_id)
+
+    if event is None:
+        return False
+
+    await session.delete(event)
+    await session.commit()
+
+    return True

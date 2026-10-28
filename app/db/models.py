@@ -3,6 +3,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy import ForeignKey
 from app.db.database import Base
+from sqlalchemy import UniqueConstraint
 
 # --------------------ПОЛЬЗОВАТЕЛИ--------------------
 
@@ -66,7 +67,7 @@ class Ideas(Base):
     )
 
     owner: Mapped[int] = mapped_column(
-        ForeignKey("users.id"),
+        ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False
     )
 
@@ -112,6 +113,14 @@ class Ideas(Base):
 class Responses(Base):
     __tablename__ = "responses"
 
+    __table_args__ = (
+        UniqueConstraint(
+            "id_idea",
+            "id_user",
+            name="uq_response_idea_user",
+        ),
+    )
+
     id: Mapped[int] = mapped_column(
         Integer,
         primary_key=True,
@@ -124,7 +133,7 @@ class Responses(Base):
     )
 
     id_user: Mapped[int] = mapped_column(
-        ForeignKey("users.id"),
+        ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False
     )
 
@@ -145,7 +154,7 @@ class Events(Base):
     )
     
     owner: Mapped[int] = mapped_column(
-        ForeignKey("users.id"),
+        ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False
     )
 
