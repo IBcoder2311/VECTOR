@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 
-from app.api.routers import home, events, ideas
+from app.api.routers import home, events, ideas, profile
 
 BASE_DIR = Path(__file__).resolve().parent
 
@@ -17,3 +17,4 @@ app.mount(
 app.include_router(home.router)
 app.include_router(ideas.router)
 app.include_router(events.router)
+app.include_router(profile.router)

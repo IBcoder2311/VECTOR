@@ -161,3 +161,27 @@ header.header-hidden {
 .min-w-0 {
     min-width: 0;
 }
+
+.profile-page {
+    min-width: 0;
+    max-width: 100%;
+}
+
+.profile-page .card,
+.profile-page .card-body,
+.profile-page .flex-grow-1 {
+    min-width: 0;
+}
+
+.profile-page a,
+.profile-page input,
+.profile-page textarea {
+    max-width: 100%;
+}
+
+.profile-content {
+    width: 100%;
+    max-width: 768px;
+    margin-inline: auto;
+    min-width: 0;
+}
