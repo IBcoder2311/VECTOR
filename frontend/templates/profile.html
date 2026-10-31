@@ -3,267 +3,265 @@
 {% block content %}
 <div class="profile-page">
     <div class="profile-content">
-        <div class="col-12 col-lg-9 col-xl-8">
 
-            <!-- Заголовок -->
-            <div class="mb-4">
-                <h2 class="fw-bold mb-1">Мой профиль</h2>
-                <p class="text-secondary mb-0">
-                    Расскажи о себе и покажи, что умеешь.
-                </p>
-            </div>
+        <!-- Заголовок -->
+        <div class="mb-4">
+            <h2 class="fw-bold mb-1">Мой профиль</h2>
+            <p class="text-secondary mb-0">
+                Расскажи о себе и покажи, что умеешь.
+            </p>
+        </div>
 
-            <!-- Основная информация -->
-            <section class="card border-secondary-subtle mb-4">
-                <div class="card-body p-3 p-md-4">
-                    <div class="d-flex align-items-center gap-3">
-                        <!-- Фиксированный аватар -->
-                        <img
-                            src="/static/img/avatar.jpg"
-                            alt="Аватар пользователя"
-                            class="rounded-circle flex-shrink-0"
-                            width="76"
-                            height="76"
-                            style="object-fit: cover;"
-                        >
+        <!-- Основная информация -->
+        <section class="card border-secondary-subtle mb-4">
+            <div class="card-body p-3 p-md-4">
+                <div class="d-flex align-items-center gap-3">
+                    <!-- Фиксированный аватар -->
+                    <img
+                        src="/static/img/avatar.jpg"
+                        alt="Аватар пользователя"
+                        class="rounded-circle flex-shrink-0"
+                        width="76"
+                        height="76"
+                        style="object-fit: cover;"
+                    >
 
-                        <div class="flex-grow-1">
-                            <h4 class="fw-bold mb-1" id="profile-name">
-                                Имя пользователя
-                            </h4>
-                            <div class="text-secondary" id="profile-username">
-                                @username
-                            </div>
+                    <div class="flex-grow-1">
+                        <h4 class="fw-bold mb-1" id="profile-name">
+                            Имя пользователя
+                        </h4>
+                        <div class="text-secondary" id="profile-username">
+                            @username
                         </div>
-
-                        <button
-                            type="button"
-                            class="btn btn-sm btn-outline-secondary"
-                            aria-label="Изменить имя"
-                            title="Изменить имя"
-                            onclick="toggleNameEditor()"
-                        >
-                            <i class="bi bi-pencil"></i>
-                        </button>
                     </div>
 
-                    <!-- Редактирование имени -->
-                    <div id="name-editor" class="mt-4" hidden>
-                        <label for="displayName" class="form-label">Имя</label>
+                    <button
+                        type="button"
+                        class="btn btn-sm btn-outline-secondary"
+                        aria-label="Изменить имя"
+                        title="Изменить имя"
+                        onclick="toggleNameEditor()"
+                    >
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                </div>
 
+                <!-- Редактирование имени -->
+                <div id="name-editor" class="mt-4" hidden>
+                    <label for="displayName" class="form-label">Имя</label>
+
+                    <input
+                        type="text"
+                        class="form-control mb-3"
+                        id="displayName"
+                        value="Имя пользователя"
+                        maxlength="60"
+                        placeholder="Как тебя называть?"
+                    >
+
+                    <div class="d-flex gap-2">
+                        <button
+                            type="button"
+                            class="btn btn-primary btn-sm"
+                            onclick="saveName()"
+                        >
+                            Сохранить
+                        </button>
+                        <button
+                            type="button"
+                            class="btn btn-outline-secondary btn-sm"
+                            onclick="cancelNameEditor()"
+                        >
+                            Отмена
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-text mt-3">
+                    Аватар и username изменить нельзя.
+                </div>
+            </div>
+        </section>
+
+        <!-- О себе -->
+        <section class="card border-secondary-subtle mb-4">
+            <div class="card-body p-3 p-md-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0">О себе</h5>
+
+                    <button
+                        type="button"
+                        class="btn btn-sm btn-outline-secondary"
+                        onclick="toggleEditor('about')"
+                    >
+                        <i class="bi bi-pencil me-1"></i>
+                        Изменить
+                    </button>
+                </div>
+
+                <div id="about-view">
+                    <p class="text-secondary mb-0">
+                        Расскажи о себе, своих интересах и проектах.
+                    </p>
+                </div>
+
+                <div id="about-editor" hidden>
+                    <textarea
+                        class="form-control mb-3"
+                        id="about-input"
+                        rows="4"
+                        maxlength="1000"
+                        placeholder="Напиши немного о себе..."
+                    ></textarea>
+
+                    <div class="d-flex gap-2">
+                        <button
+                            type="button"
+                            class="btn btn-primary btn-sm"
+                            onclick="saveText('about')"
+                        >
+                            Сохранить
+                        </button>
+                        <button
+                            type="button"
+                            class="btn btn-outline-secondary btn-sm"
+                            onclick="cancelEditor('about')"
+                        >
+                            Отмена
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Навыки -->
+        <section class="card border-secondary-subtle mb-4">
+            <div class="card-body p-3 p-md-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0">Навыки</h5>
+
+                    <button
+                        type="button"
+                        class="btn btn-sm btn-outline-secondary"
+                        onclick="toggleSkillsEditor()"
+                    >
+                        <i class="bi bi-pencil me-1"></i>
+                        Изменить
+                    </button>
+                </div>
+
+                <div id="skills-view" class="d-flex flex-wrap gap-2">
+                    <span class="idea-tag">Python</span>
+                    <span class="idea-tag">FastAPI</span>
+                    <span class="idea-tag">HTML/CSS</span>
+                </div>
+
+                <div id="skills-editor" class="mt-3" hidden>
+                    <div
+                        id="skills-edit-list"
+                        class="d-flex flex-wrap gap-2 mb-3"
+                    ></div>
+
+                    <div class="input-group">
                         <input
                             type="text"
-                            class="form-control mb-3"
-                            id="displayName"
-                            value="Имя пользователя"
-                            maxlength="60"
-                            placeholder="Как тебя называть?"
+                            class="form-control"
+                            id="skill-input"
+                            maxlength="40"
+                            placeholder="Например, Python"
                         >
-
-                        <div class="d-flex gap-2">
-                            <button
-                                type="button"
-                                class="btn btn-primary btn-sm"
-                                onclick="saveName()"
-                            >
-                                Сохранить
-                            </button>
-                            <button
-                                type="button"
-                                class="btn btn-outline-secondary btn-sm"
-                                onclick="cancelNameEditor()"
-                            >
-                                Отмена
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="form-text mt-3">
-                        Аватар и username изменить нельзя.
-                    </div>
-                </div>
-            </section>
-
-            <!-- О себе -->
-            <section class="card border-secondary-subtle mb-4">
-                <div class="card-body p-3 p-md-4">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="fw-bold mb-0">О себе</h5>
-
                         <button
+                            class="btn btn-outline-secondary"
                             type="button"
-                            class="btn btn-sm btn-outline-secondary"
-                            onclick="toggleEditor('about')"
+                            onclick="addSkill()"
                         >
-                            <i class="bi bi-pencil me-1"></i>
-                            Изменить
+                            <i class="bi bi-plus-lg"></i>
+                            Добавить
                         </button>
                     </div>
 
-                    <div id="about-view">
-                        <p class="text-secondary mb-0">
-                            Расскажи о себе, своих интересах и проектах.
-                        </p>
+                    <div class="form-text">
+                        Можно добавить до 20 навыков.
                     </div>
 
-                    <div id="about-editor" hidden>
-                        <textarea
-                            class="form-control mb-3"
-                            id="about-input"
-                            rows="4"
-                            maxlength="1000"
-                            placeholder="Напиши немного о себе..."
-                        ></textarea>
-
-                        <div class="d-flex gap-2">
-                            <button
-                                type="button"
-                                class="btn btn-primary btn-sm"
-                                onclick="saveText('about')"
-                            >
-                                Сохранить
-                            </button>
-                            <button
-                                type="button"
-                                class="btn btn-outline-secondary btn-sm"
-                                onclick="cancelEditor('about')"
-                            >
-                                Отмена
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Навыки -->
-            <section class="card border-secondary-subtle mb-4">
-                <div class="card-body p-3 p-md-4">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="fw-bold mb-0">Навыки</h5>
-
+                    <div class="d-flex gap-2 mt-3">
                         <button
                             type="button"
-                            class="btn btn-sm btn-outline-secondary"
-                            onclick="toggleSkillsEditor()"
+                            class="btn btn-primary btn-sm"
+                            onclick="saveSkills()"
                         >
-                            <i class="bi bi-pencil me-1"></i>
-                            Изменить
+                            Сохранить
                         </button>
-                    </div>
-
-                    <div id="skills-view" class="d-flex flex-wrap gap-2">
-                        <span class="idea-tag">Python</span>
-                        <span class="idea-tag">FastAPI</span>
-                        <span class="idea-tag">HTML/CSS</span>
-                    </div>
-
-                    <div id="skills-editor" class="mt-3" hidden>
-                        <div
-                            id="skills-edit-list"
-                            class="d-flex flex-wrap gap-2 mb-3"
-                        ></div>
-
-                        <div class="input-group">
-                            <input
-                                type="text"
-                                class="form-control"
-                                id="skill-input"
-                                maxlength="40"
-                                placeholder="Например, Python"
-                            >
-                            <button
-                                class="btn btn-outline-secondary"
-                                type="button"
-                                onclick="addSkill()"
-                            >
-                                <i class="bi bi-plus-lg"></i>
-                                Добавить
-                            </button>
-                        </div>
-
-                        <div class="form-text">
-                            Можно добавить до 20 навыков.
-                        </div>
-
-                        <div class="d-flex gap-2 mt-3">
-                            <button
-                                type="button"
-                                class="btn btn-primary btn-sm"
-                                onclick="saveSkills()"
-                            >
-                                Сохранить
-                            </button>
-                            <button
-                                type="button"
-                                class="btn btn-outline-secondary btn-sm"
-                                onclick="cancelSkillsEditor()"
-                            >
-                                Отмена
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Портфолио и ссылки -->
-            <section class="card border-secondary-subtle mb-4">
-                <div class="card-body p-3 p-md-4">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="fw-bold mb-0">Портфолио и ссылки</h5>
-
                         <button
                             type="button"
-                            class="btn btn-sm btn-outline-secondary"
-                            onclick="toggleLinksEditor()"
+                            class="btn btn-outline-secondary btn-sm"
+                            onclick="cancelSkillsEditor()"
                         >
-                            <i class="bi bi-pencil me-1"></i>
-                            Изменить
+                            Отмена
                         </button>
-                    </div>
-
-                    <div id="links-view" class="d-flex flex-column gap-3">
-                        <div class="text-secondary">
-                            <i class="bi bi-link-45deg me-2"></i>
-                            Пока нет ссылок на проекты.
-                        </div>
-                        <p class="text-secondary small mb-0">
-                            Здесь можно разместить GitHub, портфолио или личный сайт.
-                        </p>
-                    </div>
-
-                    <div id="links-editor" class="mt-3" hidden>
-                        <div id="links-edit-list"></div>
-
-                        <button
-                            type="button"
-                            class="btn btn-outline-secondary btn-sm mt-2"
-                            onclick="addLink()"
-                        >
-                            <i class="bi bi-plus-lg me-1"></i>
-                            Добавить ссылку
-                        </button>
-
-                        <div class="d-flex gap-2 mt-3">
-                            <button
-                                type="button"
-                                class="btn btn-primary btn-sm"
-                                onclick="saveLinks()"
-                            >
-                                Сохранить
-                            </button>
-                            <button
-                                type="button"
-                                class="btn btn-outline-secondary btn-sm"
-                                onclick="cancelLinksEditor()"
-                            >
-                                Отмена
-                            </button>
-                        </div>
                     </div>
                 </div>
-            </section>
+            </div>
+        </section>
 
-        </div>
+        <!-- Портфолио и ссылки -->
+        <section class="card border-secondary-subtle mb-4">
+            <div class="card-body p-3 p-md-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0">Портфолио и ссылки</h5>
+
+                    <button
+                        type="button"
+                        class="btn btn-sm btn-outline-secondary"
+                        onclick="toggleLinksEditor()"
+                    >
+                        <i class="bi bi-pencil me-1"></i>
+                        Изменить
+                    </button>
+                </div>
+
+                <div id="links-view" class="d-flex flex-column gap-3">
+                    <div class="text-secondary">
+                        <i class="bi bi-link-45deg me-2"></i>
+                        Пока нет ссылок на проекты.
+                    </div>
+                    <p class="text-secondary small mb-0">
+                        Здесь можно разместить GitHub, портфолио или личный сайт.
+                    </p>
+                </div>
+
+                <div id="links-editor" class="mt-3" hidden>
+                    <div id="links-edit-list"></div>
+
+                    <button
+                        type="button"
+                        class="btn btn-outline-secondary btn-sm mt-2"
+                        onclick="addLink()"
+                    >
+                        <i class="bi bi-plus-lg me-1"></i>
+                        Добавить ссылку
+                    </button>
+
+                    <div class="d-flex gap-2 mt-3">
+                        <button
+                            type="button"
+                            class="btn btn-primary btn-sm"
+                            onclick="saveLinks()"
+                        >
+                            Сохранить
+                        </button>
+                        <button
+                            type="button"
+                            class="btn btn-outline-secondary btn-sm"
+                            onclick="cancelLinksEditor()"
+                        >
+                            Отмена
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
     </div>
 </div>
 

@@ -93,6 +93,7 @@ async def create_idea(
     short_description: str,
     long_description: str,
     required_roles: list[str],
+    reference_links: list[str],
     deadline: str | None = None,
     region: str | None = None
 ):
@@ -102,6 +103,7 @@ async def create_idea(
         short_description=short_description,
         long_description=long_description,
         required_roles=required_roles,
+        reference_links=reference_links,
         roles=[],
         deadline=deadline,
         region=region
@@ -196,12 +198,14 @@ async def create_response(
     session: AsyncSession,
     id_idea: int,
     id_user: int,
-    description=""
+    description="",
+    role: str=""
 ):
     item = Responses(
         id_idea=id_idea,
         id_user=id_user,
-        description=description
+        description=description,
+        role=role,
     )
     
     session.add(item)
@@ -237,6 +241,14 @@ async def get_responses_by_user(
     )
     return result.scalars().all()
 
+async def get_responses_count(session: AsyncSession, idea_id: int):
+    result = await session.execute(
+        select(func.count())
+        .select_from(Responses)
+        .where(Responses.id_idea == idea_id)
+    )
+    return result.scalar_one()
+
 async def delete_response(
     session: AsyncSession,
     response_id: int
@@ -251,6 +263,43 @@ async def delete_response(
 
     return True
 
+async def accept_response(
+    session: AsyncSession,
+    response_id: int,
+):
+    response = await session.get(Responses, response_id)
+
+    if response is None:
+        return False
+
+    idea = await session.get(Ideas, response.id_idea)
+
+    if idea is None:
+        return False
+
+    roles = list(idea.roles or [])
+
+    if any(member["user_id"] == response.id_user for member in roles):
+        return False
+
+    roles.append({
+        "user_id": response.id_user,
+        "role": response.role,
+    })
+
+    idea.roles = roles
+
+    await session.delete(response)
+    await session.commit()
+
+    return True
+
+
+async def reject_response(
+    session: AsyncSession,
+    response_id: int,
+):
+    return await delete_response(session, response_id)
 
 # EVENTS
 

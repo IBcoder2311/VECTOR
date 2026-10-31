@@ -92,6 +92,12 @@ class Ideas(Base):
         nullable=False
     )
 
+    reference_links: Mapped[list[str]] = mapped_column(
+        JSONB,
+        default=list,
+        nullable=False
+    )
+
     roles: Mapped[list[dict]] = mapped_column(
         JSONB,
         default=list,
@@ -121,6 +127,12 @@ class Responses(Base):
         ),
     )
 
+    role: Mapped[str] = mapped_column(
+        String(50),
+        nullable=False,
+        default="",
+    )
+    
     id: Mapped[int] = mapped_column(
         Integer,
         primary_key=True,
