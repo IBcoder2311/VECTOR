@@ -207,19 +207,13 @@
                             Принять и написать в MAX
                         </button>
 
-                        <form action="/ideas/{{ idea.id }}/responses/{{ response.id }}/reject"
-                            method="POST"
-                            onsubmit="return confirm('Отклонить этот отклик?');"
-                            class="flex-grow-1">
-
-                            <button type="submit"
-                                    class="btn btn-outline-danger w-100 d-flex justify-content-center align-items-center gap-2"
-                                    title="Отклонить отклик"
-                                    aria-label="Отклонить отклик">
-                                <i class="bi bi-x-lg"></i>
-                                Отклонить отклик
-                            </button>
-                        </form>
+                        <button type="button"
+                                class="btn btn-outline-danger flex-grow-1"
+                                data-bs-toggle="modal"
+                                data-bs-target="#rejectApplicationModal{{ response.id }}">
+                            <i class="bi bi-x-lg me-1"></i>
+                            Отклонить отклик
+                        </button>
                     </div>
 
                 </div>
@@ -268,6 +262,53 @@
                                 <button type="submit" class="btn btn-primary">
                                     <i class="bi bi-person-check me-1"></i>
                                     Подтвердить
+                                </button>
+                            </form>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal fade"
+                id="rejectApplicationModal{{ response.id }}"
+                tabindex="-1"
+                aria-labelledby="rejectApplicationModalLabel{{ response.id }}"
+                aria-hidden="true">
+
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+
+                        <div class="modal-header">
+                            <h2 class="modal-title fs-5"
+                                id="rejectApplicationModalLabel{{ response.id }}">
+                                Отклонить отклик?
+                            </h2>
+
+                            <button type="button"
+                                    class="btn-close"
+                                    data-bs-dismiss="modal"
+                                    aria-label="Закрыть"></button>
+                        </div>
+
+                        <div class="modal-body">
+                            Отклик пользователя <strong>{{ response.user.name }}</strong>
+                            будет удалён из списка ожидающих.
+                            Продолжить?
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button"
+                                    class="btn btn-outline-secondary"
+                                    data-bs-dismiss="modal">
+                                Отмена
+                            </button>
+
+                            <form action="/ideas/{{ idea.id }}/responses/{{ response.id }}/reject"
+                                method="POST">
+                                <button type="submit" class="btn btn-danger">
+                                    <i class="bi bi-x-lg me-1"></i>
+                                    Отклонить
                                 </button>
                             </form>
                         </div>

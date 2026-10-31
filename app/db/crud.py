@@ -191,6 +191,33 @@ async def delete_idea(session: AsyncSession, idea_id: int):
 
     return True
 
+async def add_team_member(
+    session: AsyncSession,
+    idea_id: int,
+    user_id: int,
+    role: str,
+):
+    idea = await get_idea_by_id(session, idea_id)
+
+    if idea is None:
+        return False
+
+    members = list(idea.roles or [])
+
+    if any(member["user_id"] == user_id for member in members):
+        return False
+
+    members.append({
+        "user_id": user_id,
+        "role": role,
+    })
+
+    idea.roles = members
+
+    await session.commit()
+    await session.refresh(idea)
+
+    return True
 
 # RESPONSES
 
@@ -220,6 +247,19 @@ async def get_response_by_id(
 ):
     result = await session.execute(
         select(Responses).where(Responses.id==id)
+    )
+    return result.scalar_one_or_none()
+
+async def get_response_by_user_and_idea(
+    session: AsyncSession,
+    user_id: int,
+    idea_id: int,
+):
+    result = await session.execute(
+        select(Responses).where(
+            Responses.id_user == user_id,
+            Responses.id_idea == idea_id,
+        )
     )
     return result.scalar_one_or_none()
 

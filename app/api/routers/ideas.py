@@ -11,6 +11,9 @@ from app.db.crud import (
     create_response,
     delete_idea,
     delete_response,
+    add_team_member,
+    get_response_by_id,
+    get_response_by_user_and_idea
 )
 
 router = APIRouter()
@@ -117,6 +120,16 @@ async def respond_to_idea(
     role: str = Form(...),
 ):
     async with SessionFactory() as session:
+        existing = await get_response_by_user_and_idea(
+            session, TEST_USER_ID, idea_id
+        )
+
+        if existing is not None:
+            return RedirectResponse(
+                url=f"/ideas/{idea_id}",
+                status_code=303
+            )
+
         idea = await get_idea_by_id(session, idea_id)
 
         if idea is None or idea.owner == TEST_USER_ID:
@@ -155,8 +168,8 @@ async def delete_idea_route(idea_id: int):
         status_code=303
     )
 
-@router.post("/ideas/{idea_id}/responses/{response_id}/delete")
-async def delete_response_route(
+@router.post("/ideas/{idea_id}/responses/{response_id}/reject")
+async def reject_response_route(
     idea_id: int,
     response_id: int,
 ):
@@ -168,6 +181,33 @@ async def delete_response_route(
 
             if any(response.id == response_id for response in responses):
                 await delete_response(session, response_id)
+
+    return RedirectResponse(
+        url=f"/ideas/{idea_id}",
+        status_code=303
+    )
+
+@router.post("/ideas/{idea_id}/responses/{response_id}/accept")
+async def accept_response_route(
+    idea_id: int,
+    response_id: int,
+):
+    async with SessionFactory() as session:
+        idea = await get_idea_by_id(session, idea_id)
+
+        if idea is not None and idea.owner == TEST_USER_ID:
+            response = await get_response_by_id(session, response_id)
+
+            if response is not None and response.id_idea == idea_id:
+                added = await add_team_member(
+                    session,
+                    idea_id,
+                    response.id_user,
+                    response.role
+                )
+
+                if added:
+                    await delete_response(session, response_id)
 
     return RedirectResponse(
         url=f"/ideas/{idea_id}",
@@ -222,3 +262,4 @@ async def manage_idea(request: Request, idea_id: int):
                 "responses_count": len(responses),
             }
         )
+
