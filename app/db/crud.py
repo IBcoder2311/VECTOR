@@ -1,4 +1,4 @@
-from sqlalchemy import select, func
+from sqlalchemy import select, func, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models import Users, Ideas, Responses, Events
@@ -150,6 +150,33 @@ async def get_idea_by_id(session: AsyncSession, idea_id: int):
         select(Ideas).where(Ideas.id==idea_id)
     )
     return result.scalar_one_or_none()
+
+async def search_ideas(
+    session: AsyncSession,
+    query: str,
+    limit: int = 40,
+):
+    query = query.strip()
+
+    if not query:
+        return []
+
+    pattern = f"%{query}%"
+
+    result = await session.execute(
+        select(Ideas)
+        .where(
+            or_(
+                Ideas.name.ilike(pattern),
+                Ideas.short_description.ilike(pattern),
+                Ideas.long_description.ilike(pattern),
+            )
+        )
+        .order_by(Ideas.id.desc())
+        .limit(limit)
+    )
+
+    return result.scalars().all()
 
 async def get_ideas_by_owner(session: AsyncSession, owner_id: int):
     result = await session.execute(

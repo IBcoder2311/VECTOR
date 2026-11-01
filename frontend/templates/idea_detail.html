@@ -83,10 +83,27 @@
         </section>
 
         <div class="d-flex flex-column flex-sm-row gap-2">
-            <button type="button" class="btn btn-primary"
-                    data-bs-toggle="modal" data-bs-target="#applicationModal">
-                <i class="bi bi-send me-1"></i> Откликнуться
-            </button>
+            {% if is_team_member %}
+                <span class="btn btn-success disabled">
+                    <i class="bi bi-check-circle me-1"></i> Вы уже в команде
+                </span>
+
+            {% elif user_response %}
+                <form action="/ideas/{{ idea.id }}/responses/cancel" method="post">
+                    <button type="submit" class="btn btn-outline-danger">
+                        <i class="bi bi-x-circle me-1"></i> Отменить отклик
+                    </button>
+                </form>
+                <span class="text-success align-self-center small">
+                    Отклик отправлен
+                </span>
+
+            {% else %}
+                <button type="button" class="btn btn-primary"
+                        data-bs-toggle="modal" data-bs-target="#applicationModal">
+                    <i class="bi bi-send me-1"></i> Откликнуться
+                </button>
+            {% endif %}
 
             <button type="button" class="btn btn-outline-secondary"
                     onclick="navigator.clipboard.writeText(window.location.href)">
@@ -98,7 +115,7 @@
 
 </main>
 
-<!-- Модальное окно отклика -->
+{% if not user_response and not is_team_member %}
 <div class="modal fade" id="applicationModal" tabindex="-1"
      aria-labelledby="applicationModalLabel" aria-hidden="true">
 
@@ -161,5 +178,6 @@
         </div>
     </div>
 </div>
+{% endif %}
 
 {% endblock %}

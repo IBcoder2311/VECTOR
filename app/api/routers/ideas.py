@@ -18,7 +18,7 @@ from app.db.crud import (
 
 router = APIRouter()
 
-TEST_USER_ID = 1
+TEST_USER_ID = 2
 
 
 @router.get("/ideas")
@@ -78,7 +78,6 @@ async def create_idea_route(
         status_code=303
     )
 
-
 @router.get("/ideas/{idea_id}")
 async def idea_detail(request: Request, idea_id: int):
     async with SessionFactory() as session:
@@ -95,6 +94,17 @@ async def idea_detail(request: Request, idea_id: int):
         author = await get_user_by_id(session, idea.owner)
         responses = await get_responses_by_idea(session, idea_id)
 
+        user_response = await get_response_by_user_and_idea(
+            session,
+            TEST_USER_ID,
+            idea_id,
+        )
+
+        is_team_member = any(
+            member.get("user_id") == TEST_USER_ID
+            for member in (idea.roles or [])
+        )
+
     if idea.owner == TEST_USER_ID:
         return RedirectResponse(
             url=f"/ideas/{idea_id}/manage"
@@ -110,7 +120,33 @@ async def idea_detail(request: Request, idea_id: int):
             "author": author,
             "responses": responses,
             "responses_count": len(responses),
+            "user_response": user_response,
+            "is_team_member": is_team_member,
         }
+    )
+
+@router.post("/ideas/{idea_id}/delete")
+async def delete_idea_route(idea_id: int):
+    async with SessionFactory() as session:
+        idea = await get_idea_by_id(session, idea_id)
+
+        if idea is None:
+            raise HTTPException(
+                status_code=404,
+                detail="Идея не найдена"
+            )
+
+        if idea.owner != TEST_USER_ID:
+            raise HTTPException(
+                status_code=403,
+                detail="Нет доступа"
+            )
+
+        await delete_idea(session, idea_id)
+
+    return RedirectResponse(
+        url="/ideas",
+        status_code=303
     )
 
 @router.post("/ideas/{idea_id}/respond")
@@ -155,17 +191,100 @@ async def respond_to_idea(
         status_code=303
     )
 
-@router.post("/ideas/{idea_id}/delete")
-async def delete_idea_route(idea_id: int):
+@router.get("/ideas/{idea_id}/edit")
+async def edit_idea_page(request: Request, idea_id: int):
     async with SessionFactory() as session:
         idea = await get_idea_by_id(session, idea_id)
 
-        if idea is not None and idea.owner == TEST_USER_ID:
-            await delete_idea(session, idea_id)
+        if idea is None:
+            raise HTTPException(
+                status_code=404,
+                detail="Идея не найдена"
+            )
+
+        if idea.owner != TEST_USER_ID:
+            raise HTTPException(
+                status_code=403,
+                detail="Нет доступа"
+            )
+
+        return templates.TemplateResponse(
+            request=request,
+            name="edit_idea.html",
+            context={
+                "title": f"ВЕКТОР — Редактирование: {idea.name}",
+                "active_page": "ideas",
+                "idea": idea,
+            }
+        )
+
+@router.post("/ideas/{idea_id}/edit")
+async def edit_idea_route(
+    idea_id: int,
+    title: str = Form(...),
+    short_description: str = Form(...),
+    description: str = Form(...),
+    roles: list[str] = Form(default=[]),
+    reference_links: list[str] = Form(default=[]),
+    deadline: str | None = Form(default=None),
+    region: str | None = Form(default=None),
+):
+    async with SessionFactory() as session:
+        idea = await get_idea_by_id(session, idea_id)
+
+        if idea is None:
+            raise HTTPException(
+                status_code=404,
+                detail="Идея не найдена"
+            )
+
+        if idea.owner != TEST_USER_ID:
+            raise HTTPException(
+                status_code=403,
+                detail="Нет доступа"
+            )
+
+        idea.name = title.strip()
+        idea.short_description = short_description.strip()
+        idea.long_description = description.strip()
+        idea.required_roles = [
+            role.strip()
+            for role in roles
+            if role.strip()
+        ]
+        idea.reference_links = [
+            link.strip()
+            for link in reference_links
+            if link.strip()
+        ]
+        idea.deadline = deadline or None
+        idea.region = region.strip() if region else None
+
+        await session.commit()
 
     return RedirectResponse(
-        url="/ideas",
+        url=f"/ideas/{idea_id}/manage",
         status_code=303
+    )
+
+@router.post("/ideas/{idea_id}/responses/cancel")
+async def cancel_own_response_route(idea_id: int):
+    async with SessionFactory() as session:
+        idea = await get_idea_by_id(session, idea_id)
+
+        if idea is not None:
+            response = await get_response_by_user_and_idea(
+                session,
+                TEST_USER_ID,
+                idea_id,
+            )
+
+            if response is not None:
+                await delete_response(session, response.id)
+
+    return RedirectResponse(
+        url=f"/ideas/{idea_id}",
+        status_code=303,
     )
 
 @router.post("/ideas/{idea_id}/responses/{response_id}/reject")

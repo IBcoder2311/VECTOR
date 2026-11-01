@@ -22,13 +22,16 @@
             </div>
             <div class="d-flex align-items-center">
                 
-            <form class="flex-grow-1 me-3" role="search">
+            <form class="flex-grow-1 me-3" role="search"
+                action="/search" method="get">
                 <div class="input-group search-group">
                     <input
                         type="search"
                         class="form-control search-input"
                         placeholder="Поиск идей..."
                         aria-label="Поиск идей"
+                        name="q"
+                        value="{{ search_query or '' }}"
                     >
                     <button class="btn search-button" type="submit" aria-label="Найти">
                         <i class="bi bi-search"></i>

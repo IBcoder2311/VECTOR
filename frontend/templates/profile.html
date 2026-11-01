@@ -1,14 +1,27 @@
 {% extends "base.html" %}
 
 {% block content %}
+<div
+    id="profile-data"
+    data-name="{{ user.name }}"
+    data-about="{{ user.description or '' }}"
+    data-skills='{{ (user.skills or []) | tojson }}'
+    data-links='{{ (user.urls or []) | tojson }}'
+    hidden
+></div>
+
 <div class="profile-page">
     <div class="profile-content">
 
         <!-- Заголовок -->
         <div class="mb-4">
-            <h2 class="fw-bold mb-1">Мой профиль</h2>
+            <h2 class="fw-bold mb-1">{{ "Мой профиль" if is_owner else user.name }}</h2>
             <p class="text-secondary mb-0">
-                Расскажи о себе и покажи, что умеешь.
+                {% if is_owner %}
+                    Расскажи о себе и покажи, что умеешь.
+                {% else %}
+                    Профиль пользователя
+                {% endif %}
             </p>
         </div>
 
@@ -18,7 +31,7 @@
                 <div class="d-flex align-items-center gap-3">
                     <!-- Фиксированный аватар -->
                     <img
-                        src="/static/img/avatar.jpg"
+                        src="{{ user.img or '/static/img/avatar.jpg' }}"
                         alt="Аватар пользователя"
                         class="rounded-circle flex-shrink-0"
                         width="76"
@@ -28,13 +41,14 @@
 
                     <div class="flex-grow-1">
                         <h4 class="fw-bold mb-1" id="profile-name">
-                            Имя пользователя
+                            {{ user.name }}
                         </h4>
                         <div class="text-secondary" id="profile-username">
-                            @username
+                            {{ user.max_id }}
                         </div>
                     </div>
 
+                    {% if is_owner %}
                     <button
                         type="button"
                         class="btn btn-sm btn-outline-secondary"
@@ -44,26 +58,40 @@
                     >
                         <i class="bi bi-pencil"></i>
                     </button>
+                    {% else %}
+                    <button
+                        type="button"
+                        class="btn btn-primary btn-sm"
+                        disabled
+                        title="Будет доступно после подключения авторизации MAX"
+                    >
+                        <i class="bi bi-chat-dots me-1"></i>
+                        Написать в MAX
+                    </button>
+                    {% endif %}
                 </div>
 
+                {% if is_owner %}
                 <!-- Редактирование имени -->
-                <div id="name-editor" class="mt-4" hidden>
+                <form id="name-form" action="/profile/update" method="post">
+                    <input type="hidden" name="section" value="name">
+                    <div id="name-editor" class="mt-4" hidden>
                     <label for="displayName" class="form-label">Имя</label>
 
                     <input
                         type="text"
                         class="form-control mb-3"
                         id="displayName"
-                        value="Имя пользователя"
+                        name="name"
+                        value="{{ user.name }}"
                         maxlength="60"
                         placeholder="Как тебя называть?"
                     >
 
                     <div class="d-flex gap-2">
                         <button
-                            type="button"
+                            type="submit"
                             class="btn btn-primary btn-sm"
-                            onclick="saveName()"
                         >
                             Сохранить
                         </button>
@@ -75,11 +103,15 @@
                             Отмена
                         </button>
                     </div>
-                </div>
+                    </div>
+                </form>
+                {% endif %}
 
+                {% if is_owner %}
                 <div class="form-text mt-3">
                     Аватар и username изменить нельзя.
                 </div>
+                {% endif %}
             </div>
         </section>
 
@@ -89,6 +121,7 @@
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h5 class="fw-bold mb-0">О себе</h5>
 
+                    {% if is_owner %}
                     <button
                         type="button"
                         class="btn btn-sm btn-outline-secondary"
@@ -97,18 +130,29 @@
                         <i class="bi bi-pencil me-1"></i>
                         Изменить
                     </button>
+                    {% endif %}
                 </div>
 
                 <div id="about-view">
                     <p class="text-secondary mb-0">
-                        Расскажи о себе, своих интересах и проектах.
+                        {% if user.description %}
+                            {{ user.description }}
+                        {% elif is_owner %}
+                            Расскажи о себе, своих интересах и проектах.
+                        {% else %}
+                            Пользователь пока не добавил описание.
+                        {% endif %}
                     </p>
                 </div>
 
+                {% if is_owner %}
+                <form id="about-form" action="/profile/update" method="post">
+                    <input type="hidden" name="section" value="about">
                 <div id="about-editor" hidden>
                     <textarea
                         class="form-control mb-3"
                         id="about-input"
+                        name="description"
                         rows="4"
                         maxlength="1000"
                         placeholder="Напиши немного о себе..."
@@ -116,9 +160,8 @@
 
                     <div class="d-flex gap-2">
                         <button
-                            type="button"
+                            type="submit"
                             class="btn btn-primary btn-sm"
-                            onclick="saveText('about')"
                         >
                             Сохранить
                         </button>
@@ -131,6 +174,8 @@
                         </button>
                     </div>
                 </div>
+                </form>
+                {% endif %}
             </div>
         </section>
 
@@ -140,6 +185,7 @@
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h5 class="fw-bold mb-0">Навыки</h5>
 
+                    {% if is_owner %}
                     <button
                         type="button"
                         class="btn btn-sm btn-outline-secondary"
@@ -148,14 +194,20 @@
                         <i class="bi bi-pencil me-1"></i>
                         Изменить
                     </button>
+                    {% endif %}
                 </div>
 
                 <div id="skills-view" class="d-flex flex-wrap gap-2">
-                    <span class="idea-tag">Python</span>
-                    <span class="idea-tag">FastAPI</span>
-                    <span class="idea-tag">HTML/CSS</span>
+                    {% for skill in user.skills or [] %}
+                        <span class="idea-tag">{{ skill }}</span>
+                    {% else %}
+                        <span class="text-secondary">Навыки пока не добавлены.</span>
+                    {% endfor %}
                 </div>
 
+                {% if is_owner %}
+                <form id="skills-form" action="/profile/update" method="post">
+                    <input type="hidden" name="section" value="skills">
                 <div id="skills-editor" class="mt-3" hidden>
                     <div
                         id="skills-edit-list"
@@ -186,9 +238,8 @@
 
                     <div class="d-flex gap-2 mt-3">
                         <button
-                            type="button"
+                            type="submit"
                             class="btn btn-primary btn-sm"
-                            onclick="saveSkills()"
                         >
                             Сохранить
                         </button>
@@ -201,6 +252,8 @@
                         </button>
                     </div>
                 </div>
+                </form>
+                {% endif %}
             </div>
         </section>
 
@@ -210,6 +263,7 @@
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h5 class="fw-bold mb-0">Портфолио и ссылки</h5>
 
+                    {% if is_owner %}
                     <button
                         type="button"
                         class="btn btn-sm btn-outline-secondary"
@@ -218,18 +272,33 @@
                         <i class="bi bi-pencil me-1"></i>
                         Изменить
                     </button>
+                    {% endif %}
                 </div>
 
                 <div id="links-view" class="d-flex flex-column gap-3">
-                    <div class="text-secondary">
-                        <i class="bi bi-link-45deg me-2"></i>
-                        Пока нет ссылок на проекты.
-                    </div>
-                    <p class="text-secondary small mb-0">
-                        Здесь можно разместить GitHub, портфолио или личный сайт.
-                    </p>
+                    {% for link in user.urls or [] %}
+                        <a href="{{ link.url }}" target="_blank" rel="noopener noreferrer"
+                           class="d-flex align-items-center gap-2 text-decoration-none">
+                            <i class="bi bi-link-45deg fs-5"></i>
+                            <span>{{ link.title }}</span>
+                            <i class="bi bi-box-arrow-up-right ms-auto text-secondary"></i>
+                        </a>
+                    {% else %}
+                        <div class="text-secondary">
+                            <i class="bi bi-link-45deg me-2"></i>
+                            Пока нет ссылок на проекты.
+                        </div>
+                        {% if is_owner %}
+                            <p class="text-secondary small mb-0">
+                                Здесь можно разместить GitHub, портфолио или личный сайт.
+                            </p>
+                        {% endif %}
+                    {% endfor %}
                 </div>
 
+                {% if is_owner %}
+                <form id="links-form" action="/profile/update" method="post">
+                    <input type="hidden" name="section" value="links">
                 <div id="links-editor" class="mt-3" hidden>
                     <div id="links-edit-list"></div>
 
@@ -244,9 +313,8 @@
 
                     <div class="d-flex gap-2 mt-3">
                         <button
-                            type="button"
+                            type="submit"
                             class="btn btn-primary btn-sm"
-                            onclick="saveLinks()"
                         >
                             Сохранить
                         </button>
@@ -259,6 +327,8 @@
                         </button>
                     </div>
                 </div>
+                </form>
+                {% endif %}
             </div>
         </section>
 
@@ -266,13 +336,13 @@
 </div>
 
 <script>
-    // Временное состояние для макета.
-    // Позже данные нужно получать и сохранять через FastAPI.
-    let profileName = "Имя пользователя";
+    // Начальные данные приходят из HTML-атрибутов, а не вставляются в JS через Jinja.
+    const profileData = document.getElementById("profile-data");
+    let profileName = profileData.dataset.name;
     let profile = {
-        about: "",
-        skills: ["Python", "FastAPI", "HTML/CSS"],
-        links: []
+        about: profileData.dataset.about,
+        skills: JSON.parse(profileData.dataset.skills || "[]"),
+        links: JSON.parse(profileData.dataset.links || "[]")
     };
 
     let draftSkills = [];
@@ -286,20 +356,6 @@
             document.getElementById("displayName").value = profileName;
             document.getElementById("displayName").focus();
         }
-    }
-
-    function saveName() {
-        const input = document.getElementById("displayName");
-        const name = input.value.trim();
-
-        if (!name) {
-            input.focus();
-            return;
-        }
-
-        profileName = name;
-        document.getElementById("profile-name").textContent = profileName;
-        cancelNameEditor();
     }
 
     function cancelNameEditor() {
@@ -322,20 +378,6 @@
     function cancelEditor(section) {
         document.getElementById(`${section}-editor`).hidden = true;
         document.getElementById(`${section}-view`).hidden = false;
-    }
-
-    function saveText(section) {
-        profile[section] = document.getElementById(`${section}-input`).value.trim();
-
-        const view = document.getElementById(`${section}-view`);
-        view.replaceChildren();
-
-        const p = document.createElement("p");
-        p.className = profile[section] ? "mb-0" : "text-secondary mb-0";
-        p.textContent = profile[section] || "Расскажи о себе, своих интересах и проектах.";
-        view.appendChild(p);
-
-        cancelEditor(section);
     }
 
     function renderSkillsEditor() {
@@ -411,12 +453,6 @@
         draftSkills.push(skill);
         input.value = "";
         renderSkillsEditor();
-    }
-
-    function saveSkills() {
-        profile.skills = [...draftSkills];
-        renderSkills();
-        cancelSkillsEditor();
     }
 
     function cancelSkillsEditor() {
@@ -539,41 +575,71 @@
         renderLinksEditor();
     }
 
-    function saveLinks() {
-        const validLinks = [];
-
-        for (const link of draftLinks) {
-            const title = link.title.trim();
-            const urlText = link.url.trim();
-
-            if (!title && !urlText) continue;
-
-            const url = safeUrl(urlText);
-
-            if (!title || !url) {
-                alert("Укажи название и корректный URL, начинающийся с http:// или https://.");
-                return;
-            }
-
-            validLinks.push({ title, url: url.href });
-        }
-
-        profile.links = validLinks;
-        renderLinks();
-        cancelLinksEditor();
-    }
-
     function cancelLinksEditor() {
         document.getElementById("links-editor").hidden = true;
         document.getElementById("links-view").hidden = false;
     }
 
-    document.getElementById("skill-input").addEventListener("keydown", event => {
-        if (event.key === "Enter") {
-            event.preventDefault();
-            addSkill();
+    // Перед отправкой формы навыков превращаем массив в повторяющиеся поля skills.
+    const skillsForm = document.getElementById("skills-form");
+    if (skillsForm) {
+        skillsForm.addEventListener("submit", () => {
+            skillsForm.querySelectorAll("input[name='skills']").forEach(input => input.remove());
+
+            draftSkills.forEach(skill => {
+                const input = document.createElement("input");
+                input.type = "hidden";
+                input.name = "skills";
+                input.value = skill;
+                skillsForm.appendChild(input);
+            });
+        });
+    }
+
+    // Ссылки отправляем двумя списками: link_titles и links.
+    const linksForm = document.getElementById("links-form");
+    if (linksForm) {
+    linksForm.addEventListener("submit", event => {
+        const form = linksForm;
+        form.querySelectorAll("input[data-generated='link']").forEach(input => input.remove());
+
+        for (const link of draftLinks) {
+            const title = link.title.trim();
+            const url = safeUrl(link.url.trim());
+
+            if (!title && !link.url.trim()) continue;
+            if (!title || !url) {
+                event.preventDefault();
+                alert("Укажи название и корректный URL, начинающийся с http:// или https://.");
+                return;
+            }
+
+            const titleInput = document.createElement("input");
+            titleInput.type = "hidden";
+            titleInput.name = "link_titles";
+            titleInput.value = title;
+            titleInput.dataset.generated = "link";
+
+            const urlInput = document.createElement("input");
+            urlInput.type = "hidden";
+            urlInput.name = "links";
+            urlInput.value = url.href;
+            urlInput.dataset.generated = "link";
+
+            form.append(titleInput, urlInput);
         }
     });
+    }
+
+    const skillInput = document.getElementById("skill-input");
+    if (skillInput) {
+        skillInput.addEventListener("keydown", event => {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                addSkill();
+            }
+        });
+    }
 </script>
 
 {% endblock %}

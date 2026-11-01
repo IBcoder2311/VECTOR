@@ -2,6 +2,7 @@
 
 {% block content %}
 
+{% if not search_query %}
 <div
     id="welcome-alert"
     class="alert alert-dismissible fade show welcome-alert"
@@ -12,8 +13,13 @@
     </p>
     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Закрыть"></button>
 </div>
+{% endif %}
 
-<h1 class="mb-3">Идеи</h1>
+{% if search_query %}
+    <h1 class="mb-3">Результаты поиска: {{ search_query }}</h1>
+{% else %}
+    <h1 class="mb-3">Идеи</h1>
+{% endif %}
 
 {% for item in ideas %}
 
@@ -57,10 +63,17 @@
         class="empty-state-fox mb-3"
     >
 
-    <h4>Пока здесь пусто</h4>
-    <p class="text-secondary mb-4">
-        Есть идея? Не держи её в голове — поделись ею с другими.
-    </p>
+    {% if search_query %}
+        <h4>Ничего не найдено</h4>
+        <p class="text-secondary mb-4">
+            Попробуй изменить поисковый запрос.
+        </p>
+    {% else %}
+        <h4>Пока здесь пусто</h4>
+        <p class="text-secondary mb-4">
+            Есть идея? Не держи её в голове — поделись ею с другими.
+        </p>
+    {% endif %}
 </div>
 
 {% endfor %}
