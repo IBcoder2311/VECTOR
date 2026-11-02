@@ -124,7 +124,7 @@
             <div class="list-group list-group-flush">
 
                 {% for member in team %}
-                    <a href="/profile/{{ member.user.id }}"
+                    <a href="/users/{{ member.user.id }}"
                     class="list-group-item list-group-item-action d-flex align-items-center gap-3 p-3 text-decoration-none">
 
                         <img src="{{ member.user.img or '/frontend/static/img/avatar.jpg' }}"
