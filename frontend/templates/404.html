@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title or "ВЕКТОР — Страница не найдена" }}{% endblock %}
+
+{% block content %}
+<div class="text-center py-5">
+    <img
+        src="/static/img/fox/fox_blue.png"
+        alt="Синяя лиса ВЕКТОР"
+        class="mb-4"
+        style="width: min(100%, 260px); height: auto;"
+    >
+
+    <h1 class="display-4 fw-bold mb-2">404</h1>
+    <h2 class="h4 mb-3">Кажется, мы заблудились</h2>
+
+    <p class="text-secondary mb-4 mx-auto" style="max-width: 420px;">
+        Такой страницы нет или она была перемещена. Вернись на главную —
+        лиса поможет найти дорогу.
+    </p>
+
+    <a href="/" class="btn btn-primary">
+        <i class="bi bi-house-door me-1"></i>
+        На главную
+    </a>
+</div>
+{% endblock %}

@@ -20,3 +20,6 @@ class Config():
 
     def get_data_maxtoken(self):
         return os.getenv("MAX_BOT_TOKEN")
+
+    def get_session_secret(self):
+        return os.getenv("SESSION_SECRET")

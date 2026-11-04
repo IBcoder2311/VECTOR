@@ -7,12 +7,11 @@ from app.db.crud import get_user_by_id, update_user
 
 router = APIRouter()
 
-TEST_USER_ID = 1
-
 @router.get("/profile")
 async def profile(request: Request):
     async with SessionFactory() as session:
-        user = await get_user_by_id(session, TEST_USER_ID)
+        user_id = request.session["user_id"]
+        user = await get_user_by_id(session, user_id)
 
     if user is None:
         return templates.TemplateResponse(
@@ -35,6 +34,7 @@ async def profile(request: Request):
 
 @router.post("/profile/update")
 async def profile_update(
+    request: Request,
     section: str = Form(...),
     name: str | None = Form(None),
     description: str | None = Form(None),
@@ -42,6 +42,7 @@ async def profile_update(
     link_titles: list[str] = Form(default=[]),
     links: list[str] = Form(default=[]),
 ):
+    user_id = request.session["user_id"]
     updates = {}
 
     if section == "name" and name is not None:
@@ -76,7 +77,7 @@ async def profile_update(
         async with SessionFactory() as session:
             await update_user(
                 session,
-                TEST_USER_ID,
+                user_id,
                 **updates,
             )
 
@@ -98,7 +99,7 @@ async def user_profile(request: Request, user_id: int):
             status_code=404,
         )
 
-    is_owner = user.id == TEST_USER_ID
+    is_owner = user.id == request.session["user_id"]
 
     return templates.TemplateResponse(
         request=request,

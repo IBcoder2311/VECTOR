@@ -18,7 +18,7 @@ async def start_command(event: MessageCreated):
 
     builder.add(OpenAppButton(
         text="Открыть VECTOR",
-        web_app="https://max.ru/",
+        web_app=event.bot.me.username,
         contact_id=event.bot.me.user_id
     ))
 

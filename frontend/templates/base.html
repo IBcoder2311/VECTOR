@@ -105,5 +105,11 @@
         }, { passive: true });
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+
+    {% if not request.session.get("user_id") %}
+<script src="https://st.max.ru/js/max-web-app.js"></script>
+<script src="/static/auth.js"></script>
+{% endif %}
+
 </body>
 </html>

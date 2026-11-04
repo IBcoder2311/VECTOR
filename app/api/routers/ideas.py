@@ -18,15 +18,13 @@ from app.db.crud import (
 
 router = APIRouter()
 
-TEST_USER_ID = 2
-
-
 @router.get("/ideas")
 async def ideas(request: Request):
     async with SessionFactory() as session:
+        user_id = request.session["user_id"]
         user_ideas = await get_ideas_by_owner(
             session,
-            TEST_USER_ID
+            user_id
         )
   
     return templates.TemplateResponse(
@@ -52,6 +50,7 @@ async def create_idea_page(request: Request):
 
 @router.post("/ideas/create")
 async def create_idea_route(
+    request: Request,
     title: str = Form(...),
     short_description: str = Form(...),
     description: str = Form(...),
@@ -61,9 +60,10 @@ async def create_idea_route(
     reference_links: list[str] = Form(default=[]),
 ):
     async with SessionFactory() as session:
+        user_id = request.session["user_id"]
         await create_idea(
             session=session,
-            owner=TEST_USER_ID,
+            owner=user_id,
             name=title,
             short_description=short_description,
             long_description=description,
@@ -81,6 +81,7 @@ async def create_idea_route(
 @router.get("/ideas/{idea_id}")
 async def idea_detail(request: Request, idea_id: int):
     async with SessionFactory() as session:
+        user_id = request.session["user_id"]
         idea = await get_idea_by_id(session, idea_id)
 
         if idea is None:
@@ -96,16 +97,16 @@ async def idea_detail(request: Request, idea_id: int):
 
         user_response = await get_response_by_user_and_idea(
             session,
-            TEST_USER_ID,
+            user_id,
             idea_id,
         )
 
         is_team_member = any(
-            member.get("user_id") == TEST_USER_ID
+            member.get("user_id") == user_id
             for member in (idea.roles or [])
         )
 
-    if idea.owner == TEST_USER_ID:
+    if idea.owner == user_id:
         return RedirectResponse(
             url=f"/ideas/{idea_id}/manage"
         )
@@ -126,8 +127,9 @@ async def idea_detail(request: Request, idea_id: int):
     )
 
 @router.post("/ideas/{idea_id}/delete")
-async def delete_idea_route(idea_id: int):
+async def delete_idea_route(request: Request, idea_id: int):
     async with SessionFactory() as session:
+        user_id = request.session["user_id"]
         idea = await get_idea_by_id(session, idea_id)
 
         if idea is None:
@@ -136,7 +138,7 @@ async def delete_idea_route(idea_id: int):
                 detail="Идея не найдена"
             )
 
-        if idea.owner != TEST_USER_ID:
+        if idea.owner != user_id:
             raise HTTPException(
                 status_code=403,
                 detail="Нет доступа"
@@ -151,13 +153,15 @@ async def delete_idea_route(idea_id: int):
 
 @router.post("/ideas/{idea_id}/respond")
 async def respond_to_idea(
+    request: Request,
     idea_id: int,
     message: str = Form(...),
     role: str = Form(...),
 ):
     async with SessionFactory() as session:
+        user_id = request.session["user_id"]
         existing = await get_response_by_user_and_idea(
-            session, TEST_USER_ID, idea_id
+            session, user_id, idea_id
         )
 
         if existing is not None:
@@ -168,7 +172,7 @@ async def respond_to_idea(
 
         idea = await get_idea_by_id(session, idea_id)
 
-        if idea is None or idea.owner == TEST_USER_ID:
+        if idea is None or idea.owner == user_id:
             return RedirectResponse(
                 url=f"/ideas/{idea_id}",
                 status_code=303
@@ -178,7 +182,7 @@ async def respond_to_idea(
             await create_response(
                 session=session,
                 id_idea=idea_id,
-                id_user=TEST_USER_ID,
+                id_user=user_id,
                 description=message,
                 role=role,
             )
@@ -194,6 +198,7 @@ async def respond_to_idea(
 @router.get("/ideas/{idea_id}/edit")
 async def edit_idea_page(request: Request, idea_id: int):
     async with SessionFactory() as session:
+        user_id = request.session["user_id"]
         idea = await get_idea_by_id(session, idea_id)
 
         if idea is None:
@@ -202,7 +207,7 @@ async def edit_idea_page(request: Request, idea_id: int):
                 detail="Идея не найдена"
             )
 
-        if idea.owner != TEST_USER_ID:
+        if idea.owner != user_id:
             raise HTTPException(
                 status_code=403,
                 detail="Нет доступа"
@@ -220,6 +225,7 @@ async def edit_idea_page(request: Request, idea_id: int):
 
 @router.post("/ideas/{idea_id}/edit")
 async def edit_idea_route(
+    request: Request,
     idea_id: int,
     title: str = Form(...),
     short_description: str = Form(...),
@@ -230,6 +236,7 @@ async def edit_idea_route(
     region: str | None = Form(default=None),
 ):
     async with SessionFactory() as session:
+        user_id = request.session["user_id"]
         idea = await get_idea_by_id(session, idea_id)
 
         if idea is None:
@@ -238,7 +245,7 @@ async def edit_idea_route(
                 detail="Идея не найдена"
             )
 
-        if idea.owner != TEST_USER_ID:
+        if idea.owner != user_id:
             raise HTTPException(
                 status_code=403,
                 detail="Нет доступа"
@@ -268,14 +275,15 @@ async def edit_idea_route(
     )
 
 @router.post("/ideas/{idea_id}/responses/cancel")
-async def cancel_own_response_route(idea_id: int):
+async def cancel_own_response_route(request: Request, idea_id: int):
     async with SessionFactory() as session:
+        user_id = request.session["user_id"]
         idea = await get_idea_by_id(session, idea_id)
 
         if idea is not None:
             response = await get_response_by_user_and_idea(
                 session,
-                TEST_USER_ID,
+                user_id,
                 idea_id,
             )
 
@@ -289,13 +297,15 @@ async def cancel_own_response_route(idea_id: int):
 
 @router.post("/ideas/{idea_id}/responses/{response_id}/reject")
 async def reject_response_route(
+    request: Request,
     idea_id: int,
     response_id: int,
 ):
     async with SessionFactory() as session:
+        user_id = request.session["user_id"]
         idea = await get_idea_by_id(session, idea_id)
 
-        if idea is not None and idea.owner == TEST_USER_ID:
+        if idea is not None and idea.owner == user_id:
             responses = await get_responses_by_idea(session, idea_id)
 
             if any(response.id == response_id for response in responses):
@@ -308,13 +318,15 @@ async def reject_response_route(
 
 @router.post("/ideas/{idea_id}/responses/{response_id}/accept")
 async def accept_response_route(
+    request: Request,
     idea_id: int,
     response_id: int,
 ):
     async with SessionFactory() as session:
+        user_id = request.session["user_id"]
         idea = await get_idea_by_id(session, idea_id)
 
-        if idea is not None and idea.owner == TEST_USER_ID:
+        if idea is not None and idea.owner == user_id:
             response = await get_response_by_id(session, response_id)
 
             if response is not None and response.id_idea == idea_id:
@@ -336,12 +348,13 @@ async def accept_response_route(
 @router.get("/ideas/{idea_id}/manage")
 async def manage_idea(request: Request, idea_id: int):
     async with SessionFactory() as session:
+        user_id = request.session["user_id"]
         idea = await get_idea_by_id(session, idea_id)
 
         if not idea:
             raise HTTPException(status_code=404, detail="Идея не найдена")
 
-        if idea.owner != TEST_USER_ID:
+        if idea.owner != user_id:
             raise HTTPException(status_code=403, detail="Нет доступа")
 
         author = await get_user_by_id(session, idea.owner)
