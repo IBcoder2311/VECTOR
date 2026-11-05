@@ -6,6 +6,13 @@
         return;
     }
 
+    const startParam = window.WebApp?.initDataUnsafe?.start_param;
+    const match = /^idea_(\d+)$/.exec(startParam || "");
+
+    const returnTo = match
+        ? `/ideas/${match[1]}`
+        : "/";
+
     try {
         const response = await fetch("/auth/max", {
             method: "POST",
@@ -13,7 +20,8 @@
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                init_data: initData
+                init_data: initData,
+                return_to: returnTo
             })
         });
 

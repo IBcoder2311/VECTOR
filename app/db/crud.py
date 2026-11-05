@@ -95,6 +95,7 @@ async def create_idea(
     required_roles: list[str],
     reference_links: list[str],
     deadline: str | None = None,
+    category: str = "Другое",
     region: str | None = None
 ):
     item = Ideas(
@@ -106,6 +107,7 @@ async def create_idea(
         reference_links=reference_links,
         roles=[],
         deadline=deadline,
+        category=category,
         region=region
     )
 
@@ -136,12 +138,16 @@ async def get_ideas(
 
 async def get_random_ideas(
     session: AsyncSession,
-    limit: int = 40
+    limit: int = 40,
+    category: str | None = None,
 ):
+    query = select(Ideas)
+
+    if category:
+        query = query.where(Ideas.category == category)
+
     result = await session.execute(
-        select(Ideas)
-        .order_by(func.random())
-        .limit(limit)
+        query.order_by(func.random()).limit(limit)
     )
     return result.scalars().all()
 
@@ -155,6 +161,7 @@ async def search_ideas(
     session: AsyncSession,
     query: str,
     limit: int = 40,
+    category: str | None = None,
 ):
     query = query.strip()
 
@@ -163,19 +170,20 @@ async def search_ideas(
 
     pattern = f"%{query}%"
 
-    result = await session.execute(
-        select(Ideas)
-        .where(
-            or_(
-                Ideas.name.ilike(pattern),
-                Ideas.short_description.ilike(pattern),
-                Ideas.long_description.ilike(pattern),
-            )
+    statement = select(Ideas).where(
+        or_(
+            Ideas.name.ilike(pattern),
+            Ideas.short_description.ilike(pattern),
+            Ideas.long_description.ilike(pattern),
         )
-        .order_by(Ideas.id.desc())
-        .limit(limit)
     )
 
+    if category:
+        statement = statement.where(Ideas.category == category)
+
+    result = await session.execute(
+        statement.order_by(Ideas.id.desc()).limit(limit)
+    )
     return result.scalars().all()
 
 async def get_ideas_by_owner(session: AsyncSession, owner_id: int):

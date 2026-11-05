@@ -1,3 +1,4 @@
+
 from fastapi import APIRouter, Request, HTTPException
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
@@ -20,6 +21,9 @@ class MaxAuthRequest(BaseModel):
 
 def get_safe_return_url(url: str) -> str:
     if not url.startswith("/") or url.startswith("//"):
+        return "/"
+
+    if not url.startswith(("/ideas/", "/")):
         return "/"
 
     return url
@@ -50,7 +54,6 @@ async def authenticate_with_max(
         )
 
     max_user = max_data["user"]
-
     max_id = str(max_user["id"])
 
     name = (
@@ -94,9 +97,7 @@ async def authenticate_with_max(
     request.session.clear()
     request.session["user_id"] = user.id
 
-    return JSONResponse(
-        {
-            "ok": True,
-            "redirect_url": get_safe_return_url(data.return_to),
-        }
-    )
+    return JSONResponse({
+        "ok": True,
+        "redirect_url": get_safe_return_url(data.return_to),
+    })

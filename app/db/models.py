@@ -109,6 +109,12 @@ class Ideas(Base):
         nullable=True
     )
 
+    category: Mapped[str] = mapped_column(
+        String(50),
+        default="Другое",
+        nullable=False
+    )
+
     region: Mapped[str | None] = mapped_column(
         String,
         nullable=True

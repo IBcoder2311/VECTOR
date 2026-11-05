@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}ВЕКТОР — Настройки{% endblock %}
+
+{% block content %}
+
+<div class="container py-3">
+    <h2 class="mb-4">Настройки</h2>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <i class="bi bi-palette fs-3"></i>
+
+                <div>
+                    <h5 class="mb-1">Внешний вид</h5>
+                    <small class="text-secondary">
+                        Настрой тему приложения
+                    </small>
+                </div>
+            </div>
+
+            <select class="form-select" id="theme-select">
+                <option value="dark">Тёмная</option>
+                <option value="light">Светлая</option>
+                <option value="system">Как в системе</option>
+            </select>
+        </div>
+    </div>
+
+    <a href="/profile" class="card text-decoration-none text-body">
+        <div class="card-body d-flex align-items-center gap-3">
+            <i class="bi bi-person-circle fs-3"></i>
+
+            <div class="flex-grow-1">
+                <h5 class="mb-1">Мой профиль</h5>
+                <small class="text-secondary">
+                    Просмотр и редактирование профиля
+                </small>
+            </div>
+
+            <i class="bi bi-chevron-right"></i>
+        </div>
+    </a>
+</div>
+
+<script>
+    const themeSelect = document.getElementById("theme-select");
+
+    const savedTheme = localStorage.getItem("vector-theme") || "dark";
+    themeSelect.value = savedTheme;
+
+    window.applyVectorTheme(savedTheme);
+
+    themeSelect.addEventListener("change", () => {
+        window.applyVectorTheme(themeSelect.value, true);
+    });
+</script>
+{% endblock %}

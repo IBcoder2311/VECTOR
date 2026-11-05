@@ -15,6 +15,7 @@ from app.db.crud import (
     get_response_by_id,
     get_response_by_user_and_idea
 )
+from app.constants import IDEA_CATEGORIES
 
 router = APIRouter()
 
@@ -45,6 +46,7 @@ async def create_idea_page(request: Request):
         context={
             "title": "ВЕКТОР — Создание идеи",
             "active_page": "ideas",
+            "categories": IDEA_CATEGORIES,
         }
     )
 
@@ -56,11 +58,16 @@ async def create_idea_route(
     description: str = Form(...),
     roles: list[str] = Form(default=[]),
     deadline: str | None = Form(default=None),
+    category: str = Form(...),
     region: str | None = Form(default=None),
     reference_links: list[str] = Form(default=[]),
 ):
     async with SessionFactory() as session:
         user_id = request.session["user_id"]
+
+        if category not in IDEA_CATEGORIES:
+            raise HTTPException(status_code=400, detail="Некорректная категория")
+
         await create_idea(
             session=session,
             owner=user_id,
@@ -78,10 +85,12 @@ async def create_idea_route(
         status_code=303
     )
 
+
 @router.get("/ideas/{idea_id}")
 async def idea_detail(request: Request, idea_id: int):
+    user_id = request.session.get("user_id")
+
     async with SessionFactory() as session:
-        user_id = request.session["user_id"]
         idea = await get_idea_by_id(session, idea_id)
 
         if idea is None:
@@ -95,16 +104,20 @@ async def idea_detail(request: Request, idea_id: int):
         author = await get_user_by_id(session, idea.owner)
         responses = await get_responses_by_idea(session, idea_id)
 
-        user_response = await get_response_by_user_and_idea(
-            session,
-            user_id,
-            idea_id,
-        )
+        user_response = None
+        is_team_member = False
 
-        is_team_member = any(
-            member.get("user_id") == user_id
-            for member in (idea.roles or [])
-        )
+        if user_id is not None:
+            user_response = await get_response_by_user_and_idea(
+                session,
+                user_id,
+                idea_id,
+            )
+
+            is_team_member = any(
+                member.get("user_id") == user_id
+                for member in (idea.roles or [])
+            )
 
     if idea.owner == user_id:
         return RedirectResponse(
@@ -220,6 +233,7 @@ async def edit_idea_page(request: Request, idea_id: int):
                 "title": f"ВЕКТОР — Редактирование: {idea.name}",
                 "active_page": "ideas",
                 "idea": idea,
+                "categories": IDEA_CATEGORIES,
             }
         )
 
@@ -233,6 +247,7 @@ async def edit_idea_route(
     roles: list[str] = Form(default=[]),
     reference_links: list[str] = Form(default=[]),
     deadline: str | None = Form(default=None),
+    category: str = Form(...),
     region: str | None = Form(default=None),
 ):
     async with SessionFactory() as session:
@@ -265,6 +280,7 @@ async def edit_idea_route(
             if link.strip()
         ]
         idea.deadline = deadline or None
+        idea.category = category
         idea.region = region.strip() if region else None
 
         await session.commit()

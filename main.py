@@ -3,7 +3,7 @@ from starlette.middleware.sessions import SessionMiddleware
 from fastapi.staticfiles import StaticFiles
 from core.templates import templates
 from pathlib import Path
-from app.api.routers import home, events, ideas, profile, auth
+from app.api.routers import home, events, ideas, profile, auth, settings
 from core.config import Config
 from auth.auth_middleware import AuthMiddleware
 
@@ -47,3 +47,4 @@ app.include_router(ideas.router)
 app.include_router(events.router)
 app.include_router(profile.router)
 app.include_router(auth.router) 
+app.include_router(settings.router) 

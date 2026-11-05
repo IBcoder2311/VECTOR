@@ -1,12 +1,49 @@
 <!DOCTYPE html>
-<html lang="ru" data-bs-theme="dark" style="--bs-body-bg: #0d1117; ">
+<html lang="ru" data-bs-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script>
+        (() => {
+            const savedTheme = localStorage.getItem("vector-theme") || "dark";
+            const media = window.matchMedia("(prefers-color-scheme: dark)");
+
+            function applyTheme(theme) {
+                const actualTheme = theme === "system"
+                    ? (media.matches ? "dark" : "light")
+                    : theme;
+
+                document.documentElement.setAttribute("data-bs-theme", actualTheme);
+            }
+
+            window.applyVectorTheme = (theme, save = false) => {
+                applyTheme(theme);
+
+                if (save) {
+                    localStorage.setItem("vector-theme", theme);
+                }
+            };
+
+            applyTheme(savedTheme);
+
+            media.addEventListener("change", () => {
+                if (localStorage.getItem("vector-theme") === "system") {
+                    applyTheme("system");
+                }
+            });
+
+            document.addEventListener("DOMContentLoaded", () => {
+                applyTheme(localStorage.getItem("vector-theme") || "dark");
+            });
+        })();
+    </script>
+
     <link rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/style.css?v=20261105-2">
+
     <title>{% block title %} {{ title }} {% endblock %}</title>
 </head>
 <body>
@@ -14,35 +51,34 @@
     <header class="py-3 mb-3 border-bottom">
         <div class="container-fluid d-grid gap-3 align-items-center" style="grid-template-columns: 1fr 2fr;">
             <div class="dropdown">
-                
                 <a href="/">
                     <img src="/static/img/logo.png" alt="ВЕКТОР" height="42">
                 </a>
-                
             </div>
-            <div class="d-flex align-items-center">
-                
-            <form class="flex-grow-1 me-3" role="search"
-                action="/search" method="get">
-                <div class="input-group search-group">
-                    <input
-                        type="search"
-                        class="form-control search-input"
-                        placeholder="Поиск идей..."
-                        aria-label="Поиск идей"
-                        name="q"
-                        value="{{ search_query or '' }}"
-                    >
-                    <button class="btn search-button" type="submit" aria-label="Найти">
-                        <i class="bi bi-search"></i>
-                    </button>
-                </div>
-            </form>
 
-                <div class="flex-shrink-0 dropdown"> 
+            <div class="d-flex align-items-center">
+                <form class="flex-grow-1 me-3" role="search"
+                    action="/search" method="get">
+                    <div class="input-group search-group">
+                        <input
+                            type="search"
+                            class="form-control search-input"
+                            placeholder="Поиск идей..."
+                            aria-label="Поиск идей"
+                            name="q"
+                            value="{{ search_query or '' }}"
+                        >
+                        <button class="btn search-button" type="submit" aria-label="Найти">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                </form>
+
+                <div class="flex-shrink-0 dropdown">
                     <a href="#"
-                        class="d-block link-body-emphasis text-decoration-none dropdown-toggle" data-bs-toggle="dropdown"
-                        aria-expanded="false"> 
+                        class="d-block link-body-emphasis text-decoration-none dropdown-toggle"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false">
                         <img
                             src="/static/img/avatar.jpg"
                             alt="Аватар пользователя"
@@ -55,7 +91,7 @@
 
                     <ul class="dropdown-menu text-small shadow">
                         <li><a class="dropdown-item" href="/profile">Профиль</a></li>
-                        <li><a class="dropdown-item" href="#">Настройки</a></li>
+                        <li><a class="dropdown-item" href="/settings">Настройки</a></li>
                     </ul>
                 </div>
             </div>
@@ -64,7 +100,6 @@
 
     <main class="container px-2 px-md-3">
         {% block content %}
-        
         {% endblock %}
     </main>
 
@@ -85,7 +120,6 @@
         </a>
     </nav>
 
-
     <script>
         const header = document.querySelector("header");
         let lastScrollY = window.scrollY;
@@ -103,13 +137,53 @@
 
             lastScrollY = currentScrollY;
         }, { passive: true });
+
+        function showToast(message, type = "success") {
+            const colors = {
+                success: "text-bg-success",
+                error: "text-bg-danger",
+                warning: "text-bg-warning",
+                info: "text-bg-primary"
+            };
+
+            const toast = document.createElement("div");
+            toast.className = `toast align-items-center ${colors[type] || colors.info} border-0`;
+            toast.setAttribute("role", "alert");
+
+            toast.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body"></div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto"
+                            data-bs-dismiss="toast"></button>
+                </div>
+            `;
+
+            toast.querySelector(".toast-body").textContent = message;
+
+            document.getElementById("toast-container").appendChild(toast);
+
+            const instance = new bootstrap.Toast(toast, { delay: 3000 });
+            instance.show();
+
+            toast.addEventListener("hidden.bs.toast", () => toast.remove());
+        }
     </script>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 
+    <script src="https://st.max.ru/js/max-web-app.js"></script>
+    <script src="/static/share.js?v=1"></script>
+
     {% if not request.session.get("user_id") %}
-<script src="https://st.max.ru/js/max-web-app.js"></script>
-<script src="/static/auth.js"></script>
-{% endif %}
+        <script src="/static/auth.js"></script>
+    {% else %}
+        <script src="/static/startapp.js"></script>
+    {% endif %}
+
+    <div id="toast-container"
+         class="toast-container position-fixed bottom-0 end-0 p-3">
+    </div>
+    <script src="/static/categories.js"></script>
 
 </body>
 </html>

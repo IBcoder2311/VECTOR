@@ -9,7 +9,7 @@
         <i class="bi bi-arrow-left me-1"></i> Все идеи
     </a>        
 
-    <article class="mt-3 p-3 p-md-4 border rounded-4" style="background:#161b22;">
+    <article class="app-panel mt-3 p-3 p-md-4 border rounded-4">
 
         <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
             <div>
@@ -105,8 +105,13 @@
                 </button>
             {% endif %}
 
-            <button type="button" class="btn btn-outline-secondary"
-                    onclick="navigator.clipboard.writeText(window.location.href)">
+            <button
+                type="button"
+                class="btn btn-outline-secondary"
+                data-id="{{ idea.id }}"
+                data-name="{{ idea.name }}"
+                onclick="shareIdea(this.dataset.id, this.dataset.name)"
+            >
                 <i class="bi bi-share me-1"></i> Поделиться
             </button>
         </div>
@@ -179,5 +184,7 @@
     </div>
 </div>
 {% endif %}
+
+
 
 {% endblock %}

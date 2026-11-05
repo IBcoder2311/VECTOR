@@ -11,7 +11,7 @@
     <p class="text-secondary mb-4">Расскажи об идее и найди единомышленников.</p>
 
     <form action="/ideas/create" method="POST"
-          class="p-3 p-md-4 rounded-4 border" style="background:#161b22;">
+          class="app-panel p-3 p-md-4 rounded-4 border">
 
         <div class="mb-3">
             <label for="title" class="form-label">Название</label>
@@ -24,6 +24,18 @@
             <textarea class="form-control" id="short_description"
                       name="short_description" rows="2"
                       maxlength="300" required></textarea>
+        </div>
+
+        <div class="mb-3">
+            <label for="category" class="form-label">Категория</label>
+            <select class="form-select" id="category" name="category" required>
+                {% for category in categories %}
+                    <option value="{{ category }}"
+                        {% if category == "Другое" %}selected{% endif %}>
+                        {{ category }}
+                    </option>
+                {% endfor %}
+            </select>
         </div>
 
         <div class="mb-3">
@@ -127,7 +139,7 @@
 
         const remove = document.createElement("button");
         remove.type = "button";
-        remove.className = "btn-close btn-close-white";
+        remove.className = "btn-close btn-close";
         remove.style.fontSize = ".6rem";
         remove.setAttribute("aria-label", "Удалить " + role);
 

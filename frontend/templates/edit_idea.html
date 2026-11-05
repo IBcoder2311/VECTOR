@@ -11,8 +11,7 @@
 <form
     action="/ideas/{{ idea.id }}/edit"
     method="POST"
-    class="p-3 p-md-4 rounded-4 border"
-    style="background:#161b22;"
+    class="app-panel p-3 p-md-4 rounded-4 border"
 >
     <!-- Название -->
     <div class="mb-3">
@@ -41,6 +40,18 @@
             required
         >{{ idea.short_description }}</textarea>
     </div>
+
+    <div class="mb-3">
+        <label for="category" class="form-label">Категория</label>
+        <select class="form-select" id="category" name="category" required>
+            {% for category in categories %}
+                <option value="{{ category }}"
+                    {% if idea.category == category %}selected{% endif %}>
+                    {{ category }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>  
 
     <!-- Подробное описание -->
     <div class="mb-3">
@@ -82,7 +93,7 @@
                 <span>{{ role }}</span>
                 <button
                     type="button"
-                    class="btn-close btn-close-white remove-role"
+                    class="btn-close btn-close remove-role"
                     style="font-size:.6rem"
                     aria-label="Удалить {{ role }}"
                 ></button>
@@ -223,7 +234,7 @@
 
         const remove = document.createElement("button");
         remove.type = "button";
-        remove.className = "btn-close btn-close-white remove-role";
+        remove.className = "btn-close btn-close remove-role";
         remove.style.fontSize = ".6rem";
         remove.setAttribute("aria-label", "Удалить " + role);
 
