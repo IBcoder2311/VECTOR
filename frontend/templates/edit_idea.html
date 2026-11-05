@@ -143,7 +143,7 @@
             type="date"
             id="deadline"
             name="deadline"
-            value="{{ idea.deadline.isoformat() if idea.deadline else '' }}"
+            value="{{ idea.deadline if idea.deadline else '' }}"
         >
         <div class="form-text">Необязательно.</div>
     </div>

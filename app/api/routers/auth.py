@@ -8,7 +8,6 @@ from app.db.database import SessionFactory
 from app.db.crud import get_user_by_max_id, create_user
 from core.config import Config
 
-
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
 config = Config()
@@ -69,7 +68,7 @@ async def authenticate_with_max(
         or "Пользователь"
     )
 
-    img = max_user.get("photo_url") or "frontend/static/img/avatar.jpg"
+    img = max_user.get("photo_url") or "/static/img/avatar.jpg"
 
     async with SessionFactory() as session:
         user = await get_user_by_max_id(session, max_id)
