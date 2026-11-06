@@ -96,6 +96,7 @@ async def authenticate_with_max(
 
     request.session.clear()
     request.session["user_id"] = user.id
+    request.session["user_img"] = user.img
 
     return JSONResponse({
         "ok": True,

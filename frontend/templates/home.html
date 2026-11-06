@@ -34,19 +34,14 @@
         </div>
     </div>
 
-    <div
-        class="category-viewport"
-        id="category-viewport"
-        data-selected="{{ 'true' if selected_category else 'false' }}"
-    >
+    <div class="category-viewport" id="category-viewport">
         <div class="category-track" id="category-track">
 
             {% for copy in range(2) %}
-                <div class="category-group" {% if copy == 1 %}aria-hidden="true" inert{% endif %}>
+                <div class="category-group">
                     <a
                         href="{% if search_query %}/search?q={{ search_query|urlencode }}{% else %}/{% endif %}"
                         class="category-item {% if not selected_category %}active{% endif %}"
-                        {% if not selected_category %}aria-current="page"{% endif %}
                         tabindex="{% if copy == 1 %}-1{% else %}0{% endif %}"
                     >
                         Все идеи
@@ -56,7 +51,6 @@
                         <a
                             href="{% if search_query %}/search?q={{ search_query|urlencode }}&amp;{% else %}/?{% endif %}category={{ category|urlencode }}"
                             class="category-item {% if selected_category == category %}active{% endif %}"
-                            {% if selected_category == category %}aria-current="page"{% endif %}
                             tabindex="{% if copy == 1 %}-1{% else %}0{% endif %}"
                         >
                             {{ category }}

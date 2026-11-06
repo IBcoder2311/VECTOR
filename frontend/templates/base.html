@@ -1,48 +1,12 @@
 <!DOCTYPE html>
 <html lang="ru" data-bs-theme="dark">
-<head>
+    <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <script>
-        (() => {
-            const savedTheme = localStorage.getItem("vector-theme") || "dark";
-            const media = window.matchMedia("(prefers-color-scheme: dark)");
-
-            function applyTheme(theme) {
-                const actualTheme = theme === "system"
-                    ? (media.matches ? "dark" : "light")
-                    : theme;
-
-                document.documentElement.setAttribute("data-bs-theme", actualTheme);
-            }
-
-            window.applyVectorTheme = (theme, save = false) => {
-                applyTheme(theme);
-
-                if (save) {
-                    localStorage.setItem("vector-theme", theme);
-                }
-            };
-
-            applyTheme(savedTheme);
-
-            media.addEventListener("change", () => {
-                if (localStorage.getItem("vector-theme") === "system") {
-                    applyTheme("system");
-                }
-            });
-
-            document.addEventListener("DOMContentLoaded", () => {
-                applyTheme(localStorage.getItem("vector-theme") || "dark");
-            });
-        })();
-    </script>
-
+    <script src="/static/theme.js?v=20261106-2"></script>
     <link rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/static/style.css?v=20261105-2">
+    <link rel="stylesheet" href="/static/style.css?v=20261106-2">
 
     <title>{% block title %} {{ title }} {% endblock %}</title>
 </head>
@@ -80,12 +44,13 @@
                         data-bs-toggle="dropdown"
                         aria-expanded="false">
                         <img
-                            src="/static/img/avatar.jpg"
+                            src="{{ request.session.get('user_img') or '/static/img/avatar.jpg' }}"
                             alt="Аватар пользователя"
                             class="rounded-circle flex-shrink-0"
                             width="32"
                             height="32"
                             style="object-fit: cover;"
+                            onerror="this.onerror=null; this.src='/static/img/avatar.jpg';"
                         >
                     </a>
 

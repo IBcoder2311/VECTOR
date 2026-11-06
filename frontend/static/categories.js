@@ -4,10 +4,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (!viewport || !track) return;
 
-    const selected = viewport.dataset.selected === "true";
-
-    let paused = selected;
-    let animationFrame;
+    let position = 0;
+    let paused = false;
     let previousTime = 0;
     let resumeTimeout;
 
@@ -19,8 +17,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function resume() {
-        if (selected) return;
-
         clearTimeout(resumeTimeout);
 
         resumeTimeout = setTimeout(() => {
@@ -35,39 +31,35 @@ document.addEventListener("DOMContentLoaded", () => {
         const delta = Math.min((time - previousTime) / 1000, 0.05);
         previousTime = time;
 
-        if (!paused) {
-            const halfWidth = track.scrollWidth / 2;
+        const halfWidth = track.scrollWidth / 2;
 
-            if (halfWidth > 0) {
-                viewport.scrollLeft += speed * delta;
+        if (!paused && halfWidth > 0) {
+            position += speed * delta;
 
-                if (viewport.scrollLeft >= halfWidth) {
-                    viewport.scrollLeft -= halfWidth;
-                }
+            if (position >= halfWidth) {
+                position -= halfWidth;
             }
+
+            track.style.transform = `translateX(-${position}px)`;
         }
 
-        animationFrame = requestAnimationFrame(animate);
+        requestAnimationFrame(animate);
     }
 
-    // Компьютер
     viewport.addEventListener("mouseenter", stop);
     viewport.addEventListener("mouseleave", resume);
 
-    // Телефон
     viewport.addEventListener("touchstart", stop, { passive: true });
     viewport.addEventListener("touchend", resume, { passive: true });
     viewport.addEventListener("touchcancel", resume, { passive: true });
 
-    // Ручная прокрутка
     viewport.addEventListener("wheel", () => {
         stop();
         resume();
     }, { passive: true });
 
-    // Клавиатура
     viewport.addEventListener("focusin", stop);
     viewport.addEventListener("focusout", resume);
 
-    animationFrame = requestAnimationFrame(animate);
+    requestAnimationFrame(animate);
 });

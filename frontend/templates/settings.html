@@ -43,17 +43,4 @@
         </div>
     </a>
 </div>
-
-<script>
-    const themeSelect = document.getElementById("theme-select");
-
-    const savedTheme = localStorage.getItem("vector-theme") || "dark";
-    themeSelect.value = savedTheme;
-
-    window.applyVectorTheme(savedTheme);
-
-    themeSelect.addEventListener("change", () => {
-        window.applyVectorTheme(themeSelect.value, true);
-    });
-</script>
 {% endblock %}

@@ -23,3 +23,10 @@ class Config():
 
     def get_session_secret(self):
         return os.getenv("SESSION_SECRET")
+
+    def get_admin_max_ids(self):
+        return {
+            int(x.strip())
+            for x in os.getenv("ADMIN_MAX_IDS", "").split(",")
+            if x.strip().isdigit()
+        }

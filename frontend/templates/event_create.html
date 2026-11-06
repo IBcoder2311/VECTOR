@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="mb-3">
+    <a href="/events" class="text-secondary text-decoration-none small">
+        <i class="bi bi-arrow-left me-1"></i>
+        Мероприятия
+    </a>
+</div>
+
+<div class="mb-4">
+    <h2 class="fw-bold mb-1">Создать мероприятие</h2>
+    <p class="text-secondary mb-0">
+        Расскажи о событии, которое может быть интересно сообществу.
+    </p>
+</div>
+
+<form action="/events/create"
+      method="POST"
+      enctype="multipart/form-data">
+
+    <!-- Обложка -->
+    <div class="mb-4">
+        <label class="form-label fw-semibold">Обложка мероприятия</label>
+
+        <label for="event-image" class="d-block">
+            <div id="image-preview-container"
+                 class="rounded-4 overflow-hidden border position-relative"
+                 style="min-height: 180px; cursor: pointer; background: var(--bs-tertiary-bg);">
+
+                <img id="image-preview"
+                     src=""
+                     alt="Предпросмотр обложки"
+                     class="w-100 h-100"
+                     style="display: none; object-fit: cover; max-height: 260px;">
+
+                <div id="image-placeholder"
+                     class="d-flex flex-column align-items-center justify-content-center text-secondary p-4"
+                     style="min-height: 180px;">
+                    <i class="bi bi-image fs-1 mb-2"></i>
+                    <span class="fw-semibold">Добавить обложку</span>
+                    <small>Нажми, чтобы выбрать изображение</small>
+                </div>
+            </div>
+        </label>
+
+        <input type="file"
+            id="event-image"
+            name="img"
+            class="d-none"
+            accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp">
+
+        <div class="form-text">PNG, JPG или WebP. До 5 МБ.</div>
+    </div>
+
+    <!-- Название -->
+    <div class="mb-3">
+        <label for="event-name" class="form-label fw-semibold">
+            Название
+        </label>
+        <input type="text"
+               id="event-name"
+               name="name"
+               class="form-control"
+               maxlength="150"
+               placeholder="Например, Хакатон для начинающих"
+               required>
+    </div>
+
+    <!-- Краткое описание -->
+    <div class="mb-3">
+        <label for="event-short" class="form-label fw-semibold">
+            Краткое описание
+        </label>
+        <textarea id="event-short"
+                  name="short_description"
+                  class="form-control"
+                  rows="2"
+                  maxlength="300"
+                  placeholder="Кратко опиши мероприятие..."
+                  required></textarea>
+        <div class="form-text">До 300 символов.</div>
+    </div>
+
+    <!-- Полное описание -->
+    <div class="mb-3">
+        <label for="event-long" class="form-label fw-semibold">
+            Подробное описание
+        </label>
+        <textarea id="event-long"
+                  name="long_description"
+                  class="form-control"
+                  rows="6"
+                  placeholder="Расскажи подробнее о мероприятии..."
+                  required></textarea>
+    </div>
+
+    <!-- Регион -->
+    <div class="mb-4">
+        <label for="event-region" class="form-label fw-semibold">
+            Место проведения
+        </label>
+        <input type="text"
+               id="event-region"
+               name="region"
+               class="form-control"
+               maxlength="200"
+               placeholder="Город, регион или онлайн">
+    </div>
+
+    <!-- Ссылки -->
+    <div class="mb-4">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+            <label class="form-label fw-semibold mb-0">
+                Полезные ссылки
+            </label>
+
+            <button type="button"
+                    class="btn btn-outline-primary btn-sm"
+                    id="add-link">
+                <i class="bi bi-plus-lg me-1"></i>
+                Добавить
+            </button>
+        </div>
+
+        <div id="links-container"></div>
+
+        <div class="form-text">
+            Например, регистрация, сайт мероприятия или подробности.
+        </div>
+    </div>
+
+    <!-- Кнопки -->
+    <div class="d-flex gap-2">
+        <a href="/events" class="btn btn-outline-secondary flex-fill">
+            Отмена
+        </a>
+
+        <button type="submit" class="btn btn-primary flex-fill">
+            <i class="bi bi-plus-lg me-1"></i>
+            Создать мероприятие
+        </button>
+    </div>
+
+</form>
+
+<script>
+(() => {
+    const imageInput = document.getElementById("event-image");
+    const imagePreview = document.getElementById("image-preview");
+    const imagePlaceholder = document.getElementById("image-placeholder");
+
+    const allowedTypes = [
+        "image/jpeg",
+        "image/png",
+        "image/webp"
+    ];
+
+    const maxSize = 5 * 1024 * 1024;
+
+    imageInput.addEventListener("change", () => {
+        const file = imageInput.files[0];
+
+        if (!file) return;
+
+        if (!allowedTypes.includes(file.type)) {
+            alert("Разрешены только JPG, PNG и WebP.");
+            imageInput.value = "";
+            return;
+        }
+
+        if (file.size > maxSize) {
+            alert("Максимальный размер изображения — 5 МБ.");
+            imageInput.value = "";
+            return;
+        }
+
+        imagePreview.src = URL.createObjectURL(file);
+        imagePreview.style.display = "block";
+        imagePlaceholder.style.display = "none";
+    });
+
+    // Ссылки
+    const linksContainer = document.getElementById("links-container");
+    const addLinkButton = document.getElementById("add-link");
+
+    addLinkButton.addEventListener("click", () => {
+        if (linksContainer.children.length >= 10) {
+            alert("Можно добавить не больше 10 ссылок.");
+            return;
+        }
+
+        const wrapper = document.createElement("div");
+        wrapper.className = "input-group mb-2";
+
+        const input = document.createElement("input");
+        input.type = "url";
+        input.name = "urls";
+        input.className = "form-control";
+        input.placeholder = "https://example.com";
+        input.maxLength = 500;
+
+        const removeButton = document.createElement("button");
+        removeButton.type = "button";
+        removeButton.className = "btn btn-outline-danger";
+        removeButton.innerHTML = '<i class="bi bi-trash"></i>';
+
+        removeButton.addEventListener("click", () => {
+            wrapper.remove();
+        });
+
+        wrapper.append(input, removeButton);
+        linksContainer.appendChild(wrapper);
+    });
+})();
+</script>
+
+{% endblock %}
