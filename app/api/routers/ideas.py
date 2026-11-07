@@ -634,7 +634,7 @@ async def manage_idea(request: Request, idea_id: int):
                 "responses": responses,
                 "responses_count": len(responses),
                 "is_admin": (
-                    user.max_id in Config().get_admin_max_ids()
+                    int(user.max_id) in Config().get_admin_max_ids()
                 ),
             },
         )

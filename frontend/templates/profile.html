@@ -63,7 +63,8 @@
 
                 {% if is_owner %}
                 <!-- Редактирование имени -->
-                <form id="name-form" action="/profile/update" method="post">
+                <form id="name-form" action="/profile/update" method="post"
+                    onsubmit="return validateProfileForm(this)">
                     <input type="hidden" name="section" value="name">
                     <div id="name-editor" class="mt-4" hidden>
                     <label for="displayName" class="form-label">Имя</label>
@@ -74,7 +75,7 @@
                         id="displayName"
                         name="name"
                         value="{{ user.name }}"
-                        maxlength="60"
+                        maxlength="100"
                         placeholder="Как тебя называть?"
                     >
 
@@ -136,7 +137,8 @@
                 </div>
 
                 {% if is_owner %}
-                <form id="about-form" action="/profile/update" method="post">
+                <form id="about-form" action="/profile/update" method="post"
+                    onsubmit="return validateProfileForm(this)">
                     <input type="hidden" name="section" value="about">
                 <div id="about-editor" hidden>
                     <textarea
@@ -144,7 +146,7 @@
                         id="about-input"
                         name="description"
                         rows="4"
-                        maxlength="1000"
+                        maxlength="500"
                         placeholder="Напиши немного о себе..."
                     ></textarea>
 
@@ -629,6 +631,22 @@
                 addSkill();
             }
         });
+    }
+    function validateProfileForm(form) {
+        const name = form.querySelector('[name="name"]');
+        const description = form.querySelector('[name="description"]');
+
+        if (name && name.value.trim().length > 100) {
+            alert("Имя не должно превышать 100 символов.");
+            return false;
+        }
+
+        if (description && description.value.trim().length > 500) {
+            alert("Описание не должно превышать 500 символов.");
+            return false;
+        }
+
+        return true;
     }
 </script>
 

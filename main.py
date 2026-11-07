@@ -21,7 +21,7 @@ app.add_middleware(
     session_cookie="vector_session",
     max_age=60 * 60 * 24 * 7,  # 7 дней
     same_site="lax",
-    https_only=False, # НАДО СДЕЛАТЬ TRUE
+    https_only=True,
 )
 
 app.mount(
