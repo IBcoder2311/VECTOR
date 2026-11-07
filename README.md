@@ -438,3 +438,6 @@ docker compose --env-file core/.env down
 
 <h3 align="center">ВЕКТОР — найди своё место в проекте.</h3>
 <p align="center">От идеи до команды — в одном пространстве.</p>
+<p align="center">
+  <img src="frontend/static/img/fox/fox_sleeping.png" width="180" alt="Спящая лиса">
+</p>
