@@ -4,6 +4,7 @@ version = "0.1.0"
 requires-python = ">=3.13"
 dependencies = [
     "asyncpg>=0.32.0",
+    "badwords-py>=3.0.0",
     "fastapi[standard]>=0.162.0",
     "greenlet>=3.5.6",
     "itsdangerous>=2.2.0",

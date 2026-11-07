@@ -271,6 +271,20 @@ wheels = [
 ]
 
 [[package]]
+name = "badwords-py"
+version = "3.0.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/a9/e6/b9a182ac03d0982640f156482e34d07c5ca0ade4f1f9a3f3116033c50119/badwords_py-3.0.0.tar.gz", hash = "sha256:77b2f3e65cf31e8edeccd50780c56fce04e19bd0a9d95ce3d0b502b6ae12487e", size = 227368, upload-time = "2026-09-04T13:26:03.493Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/cd/b8/b31fa47f8d0c33bb8cfa3f7f53f1d7c91bbe87e6fb208244658ca8442377/badwords_py-3.0.0-cp313-cp313-macosx_10_12_x86_64.whl", hash = "sha256:62cfc1c29df02fe1fce0bb665432021916afc3cd2cd75c4e295cb162732cb13d", size = 797336, upload-time = "2026-09-04T10:30:52.704Z" },
+    { url = "https://files.pythonhosted.org/packages/51/73/ee79803f49fd689403c59563e6ec4346fb1a4f9ec4f72fba8ded25e2dc04/badwords_py-3.0.0-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:410a3e010b2e69b7fa7f14586e2456602d59da83fce24cc38f52e85a8969ee3d", size = 759000, upload-time = "2026-09-04T10:30:54.676Z" },
+    { url = "https://files.pythonhosted.org/packages/13/6a/6a94a71008338394551d62e5395d5184bf3f3f420c252adcb9d44f9dbd34/badwords_py-3.0.0-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:fcccd04089edaea0cf43d709f67362b9fcf28264d5377795b95ebeb745b26627", size = 815006, upload-time = "2026-09-04T10:30:56.204Z" },
+    { url = "https://files.pythonhosted.org/packages/50/b4/83f9f19bcd8171f2c30db0a9a9509bbeda834aff707ba4239b5596f8f8fe/badwords_py-3.0.0-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:584e4aaf8d4a77f3b19141e22d59d510f8a348f6401601a818f38a7007a2f779", size = 859195, upload-time = "2026-09-04T10:30:57.725Z" },
+    { url = "https://files.pythonhosted.org/packages/c3/d0/e56894958e9d05b5af7d20423b42f7b1e4b3be0b397420bf991f6e6bbda1/badwords_py-3.0.0-cp313-cp313-musllinux_1_2_x86_64.whl", hash = "sha256:51bcb1012f63f42fdb38e021842c02018bb75294b9e13ea8115b31b3793713d8", size = 1070092, upload-time = "2026-09-04T10:30:59.498Z" },
+    { url = "https://files.pythonhosted.org/packages/4c/d3/4c1e1443d24d7ac9fa42fb8e9471b3464002ca3fc05e6ea8219dd1ba4a7a/badwords_py-3.0.0-cp313-cp313-win_amd64.whl", hash = "sha256:6aa7418c00bae6053be1ec975536fdd948fd2f84c1e206055e03618019c130b8", size = 686566, upload-time = "2026-09-04T10:31:00.982Z" },
+]
+
+[[package]]
 name = "certifi"
 version = "2026.10.23"
 source = { registry = "https://pypi.org/simple" }
@@ -2030,6 +2044,7 @@ version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
     { name = "asyncpg" },
+    { name = "badwords-py" },
     { name = "fastapi", extra = ["standard"] },
     { name = "greenlet" },
     { name = "itsdangerous" },
@@ -2045,6 +2060,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "asyncpg", specifier = ">=0.32.0" },
+    { name = "badwords-py", specifier = ">=3.0.0" },
     { name = "fastapi", extras = ["standard"], specifier = ">=0.162.0" },
     { name = "greenlet", specifier = ">=3.5.6" },
     { name = "itsdangerous", specifier = ">=2.2.0" },

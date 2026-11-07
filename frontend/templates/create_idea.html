@@ -84,6 +84,24 @@
         </div>
 
         <div class="mb-3">
+            <label for="max_chat_link" class="form-label">
+                Ссылка на MAX-чат
+            </label>
+            <input
+                class="form-control"
+                type="url"
+                id="max_chat_link"
+                name="max_chat_link"
+                placeholder="https://max.ru/..."
+                pattern="https?://.+"
+                required
+            >
+            <div class="form-text">
+                Ссылка на закрытый чат команды.
+            </div>
+        </div>
+
+        <div class="mb-3">
             <label for="deadline" class="form-label">Дедлайн</label>
             <input class="form-control" type="date"
                    id="deadline" name="deadline">
@@ -200,6 +218,20 @@
     ).toISOString().split("T")[0];
 
     deadline.min = localToday;
+        const createForm = document.querySelector('form[action="/ideas/create"]');
+
+    createForm.addEventListener("submit", event => {
+        if (roles.size === 0) {
+            event.preventDefault();
+
+            roleError.textContent = "Добавь хотя бы одну необходимую роль.";
+            roleInput.focus();
+            roleTags.scrollIntoView({
+                behavior: "smooth",
+                block: "center"
+            });
+        }
+    });
 </script>
 
 {% endblock %}

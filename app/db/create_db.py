@@ -1,5 +1,5 @@
 import asyncio
-from app.db.models import Users, Ideas, Responses, Events
+from app.db.models import Users, Ideas, Responses, Events, Notifications
 from app.db.database import create_tables
 
 if __name__ == "__main__":

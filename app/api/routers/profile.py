@@ -4,6 +4,7 @@ from fastapi.responses import RedirectResponse
 from core.templates import templates
 from app.db.database import SessionFactory
 from app.db.crud import get_user_by_id, update_user
+from app.moderation.guard import moderate_or_reject
 
 router = APIRouter()
 
@@ -45,13 +46,19 @@ async def profile_update(
     user_id = request.session["user_id"]
     updates = {}
 
+    texts = []
+
     if section == "name" and name is not None:
+        texts.append(name)
         updates["name"] = name.strip()
 
     elif section == "about" and description is not None:
+        texts.append(description)
         updates["description"] = description.strip()
 
     elif section == "skills":
+        texts.extend(skills)
+
         updates["skills"] = [
             skill.strip()
             for skill in skills
@@ -59,6 +66,9 @@ async def profile_update(
         ]
 
     elif section == "links":
+        texts.extend(link_titles)
+        texts.extend(links)
+
         urls = []
 
         for title, url in zip(link_titles, links):
@@ -75,6 +85,8 @@ async def profile_update(
 
     if updates:
         async with SessionFactory() as session:
+            await moderate_or_reject(session, user_id, *texts)
+
             await update_user(
                 session,
                 user_id,

@@ -1,7 +1,7 @@
 from sqlalchemy import select, func, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.models import Users, Ideas, Responses, Events
+from app.db.models import Users, Ideas, Responses, Events, Notifications
 
 # USERS
 async def create_user(
@@ -66,7 +66,7 @@ async def update_user_status(
     user_id: int,
     new_status: str,
 ):
-    allowed_statuses = {"user", "admin", "organization"}
+    allowed_statuses = {"user", "admin", "organizer"}
 
     if new_status not in allowed_statuses:
         raise ValueError(f"Недопустимый статус: {new_status}")
@@ -96,7 +96,8 @@ async def create_idea(
     reference_links: list[str],
     deadline: str | None = None,
     category: str = "Другое",
-    region: str | None = None
+    region: str | None = None,
+    max_chat_link: str = "",
 ):
     item = Ideas(
         owner=owner,
@@ -108,7 +109,8 @@ async def create_idea(
         roles=[],
         deadline=deadline,
         category=category,
-        region=region
+        region=region,
+        max_chat_link=max_chat_link,
     )
 
     session.add(item)
@@ -195,7 +197,7 @@ async def get_ideas_by_owner(session: AsyncSession, owner_id: int):
 async def update_idea(session: AsyncSession, idea_id: int, **updates):
     idea = await session.get(Ideas, idea_id)
     
-    allowed_fields = {"name", "short_description", "long_description", "required_roles", "deadline", "region"}
+    allowed_fields = {"name", "short_description", "long_description", "required_roles", "deadline", "region", "max_chat_link"}
 
     if idea is None:
         return None
@@ -481,6 +483,53 @@ async def delete_event(
         return False
 
     await session.delete(event)
+    await session.commit()
+
+    return True
+
+# NOTIFICATIONS
+
+async def create_notification(
+    session: AsyncSession,
+    user_id: int,
+    message: str,
+):
+    notification = Notifications(
+        user_id=user_id,
+        message=message,
+    )
+
+    session.add(notification)
+    await session.commit()
+
+    return notification
+
+
+async def get_notifications(
+    session: AsyncSession,
+    limit: int = 10,
+):
+    result = await session.execute(
+        select(Notifications)
+        .order_by(Notifications.created_at)
+        .limit(limit)
+    )
+    return result.scalars().all()
+
+
+async def delete_notification(
+    session: AsyncSession,
+    notification_id: int,
+):
+    notification = await session.get(
+        Notifications,
+        notification_id,
+    )
+
+    if notification is None:
+        return False
+
+    await session.delete(notification)
     await session.commit()
 
     return True

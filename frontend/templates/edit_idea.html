@@ -146,6 +146,25 @@
         </button>
     </div>
 
+    <div class="mb-3">
+        <label for="max_chat_link" class="form-label">
+            Ссылка на MAX-чат
+        </label>
+        <input
+            class="form-control"
+            type="url"
+            id="max_chat_link"
+            name="max_chat_link"
+            placeholder="https://max.ru/..."
+            pattern="https?://.+"
+            value="{{ idea.max_chat_link or '' }}"
+            required
+        >
+        <div class="form-text">
+            Ссылка на закрытый чат команды.
+        </div>
+    </div>
+
     <!-- Дедлайн -->
     <div class="mb-3">
         <label for="deadline" class="form-label">Дедлайн</label>
@@ -359,6 +378,39 @@
         linksContainer.appendChild(group);
 
         input.focus();
+    });
+    document.addEventListener("DOMContentLoaded", () => {
+        const inputs = document.querySelectorAll('input[name="max_chat_link"]');
+
+        inputs.forEach(input => {
+            const validate = () => {
+                const value = input.value.trim();
+
+                if (!value) {
+                    input.setCustomValidity("Ссылка на MAX-чат обязательна");
+                    return;
+                }
+
+                try {
+                    const url = new URL(value);
+
+                    if (
+                        !["http:", "https:"].includes(url.protocol) ||
+                        !url.hostname.includes(".")
+                    ) {
+                        throw new Error();
+                    }
+
+                    input.setCustomValidity("");
+                } catch {
+                    input.setCustomValidity("Введите корректную ссылку");
+                }
+            };
+
+            input.addEventListener("input", validate);
+            input.addEventListener("change", validate);
+            validate();
+        });
     });
 </script>
 

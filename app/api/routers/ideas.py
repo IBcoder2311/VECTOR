@@ -4,6 +4,7 @@ from fastapi.responses import RedirectResponse
 
 from core.templates import templates
 from core.config import Config
+from urllib.parse import urlparse
 
 from app.db.database import SessionFactory
 from app.db.crud import (
@@ -18,14 +19,34 @@ from app.db.crud import (
     add_team_member,
     get_response_by_id,
     get_response_by_user_and_idea,
+    create_notification,
 )
-
+from app.moderation.moderation import check_text
 from app.constants import IDEA_CATEGORIES
 
 
 router = APIRouter()
 
+async def moderate_or_reject(session, user_id: int, *texts: str):
+    for text in texts:
+        result = check_text(text or "")
 
+        if result["flagged"]:
+            await create_notification(
+                session=session,
+                user_id=user_id,
+                message=(
+                    "🚫 Твоя публикация отклонена!\n\n"
+                    "Обнаружена запрещённая лексика. "
+                    "Исправь текст и попробуй отправить снова."
+                ),
+            )
+
+            raise HTTPException(
+                status_code=400,
+                detail="Публикация отклонена модерацией.",
+            )
+        
 def has_idea_access(user, idea) -> bool:
     if user is None or idea is None:
         return False
@@ -36,6 +57,29 @@ def has_idea_access(user, idea) -> bool:
     is_admin = int(user.max_id) in admin_ids
 
     return is_owner or is_admin
+
+def validate_max_chat_link(link: str) -> str:
+    link = link.strip()
+
+    if not link:
+        raise HTTPException(
+            status_code=400,
+            detail="Ссылка на MAX-чат обязательна",
+        )
+
+    parsed = urlparse(link)
+
+    if (
+        parsed.scheme not in ("http", "https")
+        or not parsed.netloc
+        or "." not in parsed.netloc
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="Некорректная ссылка на MAX-чат",
+        )
+
+    return link
 
 
 @router.get("/ideas")
@@ -83,6 +127,7 @@ async def create_idea_route(
     category: str = Form(...),
     region: str | None = Form(default=None),
     reference_links: list[str] = Form(default=[]),
+    max_chat_link: str = Form(default=""),
 ):
     async with SessionFactory() as session:
         user_id = request.session["user_id"]
@@ -93,6 +138,19 @@ async def create_idea_route(
                 detail="Некорректная категория",
             )
 
+        await moderate_or_reject(
+            session, user_id,
+            title,
+            short_description,
+            description,
+            region or "",
+            *roles,
+            *reference_links,
+            max_chat_link,
+        )
+
+        max_chat_link = validate_max_chat_link(max_chat_link)
+        
         await create_idea(
             session=session,
             owner=user_id,
@@ -103,6 +161,8 @@ async def create_idea_route(
             reference_links=reference_links,
             deadline=deadline or None,
             region=region or None,
+            max_chat_link=max_chat_link.strip(),
+            category=category,
         )
 
     return RedirectResponse(
@@ -230,6 +290,11 @@ async def respond_to_idea(
                 status_code=303,
             )
 
+        await moderate_or_reject(
+            session, user_id,
+            message, role,
+        )
+
         try:
             await create_response(
                 session=session,
@@ -238,6 +303,17 @@ async def respond_to_idea(
                 description=message,
                 role=role,
             )
+
+            await create_notification(
+                session=session,
+                user_id=idea.owner,
+                message=(
+                    f"📩 Новый отклик на твою идею «{idea.name}»!\n\n"
+                    f"Роль: {role}\n"
+                    "Открой VECTOR, чтобы посмотреть отклик."
+                ),
+            )
+
         except Exception:
             await session.rollback()
             raise
@@ -292,6 +368,7 @@ async def edit_idea_route(
     deadline: str | None = Form(default=None),
     category: str = Form(...),
     region: str | None = Form(default=None),
+    max_chat_link: str = Form(default=""),
 ):
     async with SessionFactory() as session:
         user_id = request.session["user_id"]
@@ -317,6 +394,19 @@ async def edit_idea_route(
                 detail="Некорректная категория",
             )
 
+        await moderate_or_reject(
+            session, user_id,
+            title,
+            short_description,
+            description,
+            region or "",
+            *roles,
+            *reference_links,
+            max_chat_link,
+        )
+
+        max_chat_link = validate_max_chat_link(max_chat_link)
+
         idea.name = title.strip()
         idea.short_description = short_description.strip()
         idea.long_description = description.strip()
@@ -336,6 +426,7 @@ async def edit_idea_route(
         idea.deadline = deadline or None
         idea.category = category
         idea.region = region.strip() if region else None
+        idea.max_chat_link = max_chat_link.strip()
 
         await session.commit()
 
@@ -395,7 +486,18 @@ async def reject_response_route(
         response = await get_response_by_id(session, response_id)
 
         if response is not None and response.id_idea == idea_id:
+            response_user_id = response.id_user
+
             await delete_response(session, response_id)
+
+            await create_notification(
+                session=session,
+                user_id=response_user_id,
+                message=(
+                    f"Отклик на идею «{idea.name}» отклонён.\n\n"
+                    "Можешь продолжить поиск проектов в VECTOR."
+                ),
+            )
 
     return RedirectResponse(
         url=f"/ideas/{idea_id}/manage",
@@ -430,15 +532,34 @@ async def accept_response_route(
         response = await get_response_by_id(session, response_id)
 
         if response is not None and response.id_idea == idea_id:
+            response_user_id = response.id_user
+
             added = await add_team_member(
                 session,
                 idea_id,
-                response.id_user,
+                response_user_id,
                 response.role,
             )
 
             if added:
                 await delete_response(session, response_id)
+
+                message = (
+                    f"🎉 Твой отклик на идею «{idea.name}» принят!\n\n"
+                    "Ты добавлен в команду."
+                )
+
+                if idea.max_chat_link:
+                    message += (
+                        f"\n\nСсылка на MAX-чат команды:\n"
+                        f"{idea.max_chat_link}"
+                    )
+
+                await create_notification(
+                    session=session,
+                    user_id=response_user_id,
+                    message=message,
+                )
 
     return RedirectResponse(
         url=f"/ideas/{idea_id}/manage",
