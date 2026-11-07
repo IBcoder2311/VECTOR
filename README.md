@@ -6,7 +6,31 @@
 
 Главная цель проекта — сделать поиск проектов и участников команды доступнее, объединив эти возможности в одном пространстве.
 
----
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white" />
+  <img src="https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white" />
+  <img src="https://img.shields.io/badge/PostgreSQL-4169E1?style=flat-square&logo=postgresql&logoColor=white" />
+  <img src="https://img.shields.io/badge/SQLAlchemy-D71F00?style=flat-square&logo=sqlalchemy&logoColor=white" />
+  <img src="https://img.shields.io/badge/Jinja2-B41717?style=flat-square&logo=jinja&logoColor=white" />
+  <img src="https://img.shields.io/badge/HTML5-E34F26?style=flat-square&logo=html5&logoColor=white" />
+  <img src="https://img.shields.io/badge/CSS3-1572B6?style=flat-square&logo=css3&logoColor=white" />
+  <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=flat-square&logo=javascript&logoColor=black" />
+  <img src="https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white" />
+  <img src="https://img.shields.io/badge/Uvicorn-4051B5?style=flat-square&logo=gunicorn&logoColor=white" />
+  <img src="https://img.shields.io/badge/MAX-7B61FF?style=flat-square&logoColor=white" />
+</p>
+
+## Содержание
+
+- [О проекте](#о-проекте)
+- [Возможности платформы](#возможности-платформы)
+- [MAX-бот](#max-бот)
+- [Модерация контента](#модерация-контента)
+- [Технологический стек](#технологический-стек)
+- [Архитектура проекта](#архитектура-проекта)
+- [Структура проекта](#структура-проекта)
+- [Установка и запуск](#установка-и-запуск)
+- [Развитие проекта](#развитие-проекта)
 
 ## О проекте
 
@@ -412,4 +436,5 @@ docker compose --env-file core/.env down
 
 ---
 
-**ВЕКТОР — найди своё место в проекте.**
+<h3 align="center">ВЕКТОР — найди своё место в проекте.</h3>
+<p align="center">От идеи до команды — в одном пространстве.</p>
