@@ -1,0 +1,28 @@
+# Git и локальные настройки
+.git
+.gitignore
+.vscode
+.idea
+
+# Секреты и переменные окружения
+.env
+.env.*
+!.env.example
+core/.env
+
+# Python / uv
+.venv
+venv
+__pycache__
+**/__pycache__
+*.py[cod]
+*.pyo
+
+# Локальная БД, загрузки и логи
+pgdata
+frontend/static/uploads
+*.log
+
+# Системные файлы
+.DS_Store
+Thumbs.db

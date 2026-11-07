@@ -1,12 +1,80 @@
 services:
   postgres:
     image: postgres:18
-    container_name: vector-postgres
+    restart: unless-stopped
     environment:
-      POSTGRES_USER: postgres_user
-      POSTGRES_PASSWORD: postgres_password
-      POSTGRES_DB: vector
-    ports:
-      - "5432:5432"
+      POSTGRES_USER: ${DB_USER:-vector}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+      POSTGRES_DB: ${DB_NAME:-vector}
     volumes:
-      - ./pgdata:/var/lib/postgresql
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  db-init:
+    build: .
+    image: vector:local
+    restart: "no"
+    env_file:
+      - ./core/.env
+    environment:
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_USER: ${DB_USER:-vector}
+      DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+      DB_NAME: ${DB_NAME:-vector}
+    command: ["python", "-m", "app.db.create_db"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  web:
+    build: .
+    image: vector:local
+    restart: unless-stopped
+    env_file:
+      - ./core/.env
+    environment:
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_USER: ${DB_USER:-vector}
+      DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+      DB_NAME: ${DB_NAME:-vector}
+      SESSION_SECRET: ${SESSION_SECRET:?Set SESSION_SECRET in .env}
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - event_uploads:/app/frontend/static/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+      db-init:
+        condition: service_completed_successfully
+
+  bot:
+    build: .
+    image: vector:local
+    restart: unless-stopped
+    env_file:
+      - ./core/.env
+    environment:
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_USER: ${DB_USER:-vector}
+      DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+      DB_NAME: ${DB_NAME:-vector}
+      MAX_BOT_TOKEN: ${MAX_BOT_TOKEN:?Set MAX_BOT_TOKEN in .env}
+    command: ["python", "-m", "app.max_api.max_bot"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      db-init:
+        condition: service_completed_successfully
+
+volumes:
+  postgres_data:
+  event_uploads:
