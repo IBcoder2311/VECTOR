@@ -373,39 +373,83 @@ async def receive_report(event: MessageCreated, context: MemoryContext):
 
     max_id = str(sender.user_id)
     user = await get_vector_user(max_id)
-
     name = user.name if user else "Не зарегистрирован в VECTOR"
 
-    admin_text = (
-        "📨 Новое обращение VECTOR\n\n"
-        f"Пользователь: {name}\n"
-        f"MAX ID: {max_id}\n\n"
-        f"Сообщение:\n{text}"
-    )
+    normalized_text = " ".join(text.casefold().split())
+    now = time.monotonic()
 
-    sent_count = 0
+    async with report_lock:
+        history = report_history.setdefault(max_id, deque())
 
-    for admin_id in get_admin_ids():
-        try:
-            await bot.send_message(
-                user_id=admin_id,
-                text=admin_text,
+        # Удаляем обращения старше 24 часов
+        while history and now - history[0][0] >= REPORT_DUPLICATE_PERIOD:
+            history.popleft()
+
+        # Проверка повторного сообщения
+        if any(message == normalized_text for _, message in history):
+            await event.message.answer(
+                "Ты уже отправлял такое обращение. "
+                "Повторная отправка возможна через 24 часа."
             )
-            sent_count += 1
-        except Exception:
-            logger.exception(
-                "Не удалось отправить обращение администратору %s",
-                admin_id,
+            return
+
+        # Проверка ограничения за сутки
+        if len(history) >= REPORT_DAILY_LIMIT:
+            await event.message.answer(
+                "Ты достиг лимита: 5 обращений за 24 часа. "
+                "Попробуй позже."
             )
+            return
+
+        # Проверка интервала между обращениями
+        if history:
+            elapsed = now - history[-1][0]
+
+            if elapsed < REPORT_COOLDOWN:
+                remaining = int(REPORT_COOLDOWN - elapsed)
+                minutes = max(1, (remaining + 59) // 60)
+
+                await event.message.answer(
+                    f"Слишком часто! Следующее обращение можно "
+                    f"отправить через {minutes} мин."
+                )
+                return
+
+        admin_text = (
+            "📨 Новое обращение VECTOR\n\n"
+            f"Пользователь: {name}\n"
+            f"MAX ID: {max_id}\n\n"
+            f"Сообщение:\n{text}"
+        )
+
+        sent_count = 0
+
+        for admin_id in get_admin_ids():
+            try:
+                await bot.send_message(
+                    user_id=admin_id,
+                    text=admin_text,
+                )
+                sent_count += 1
+
+            except Exception:
+                logger.exception(
+                    "Не удалось отправить обращение администратору %s",
+                    admin_id,
+                )
+
+        if sent_count == 0:
+            await context.clear()
+            await event.message.answer(
+                "Не удалось доставить обращение администрации. "
+                "Попробуй позже."
+            )
+            return
+
+        # Записываем только успешно доставленное обращение
+        history.append((now, normalized_text))
 
     await context.clear()
-
-    if sent_count == 0:
-        await event.message.answer(
-            "Не удалось доставить обращение администрации. "
-            "Попробуй позже."
-        )
-        return
 
     await event.message.answer(
         "✅ Обращение отправлено администрации VECTOR. Спасибо!"
