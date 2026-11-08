@@ -24,7 +24,8 @@ from app.db.crud import (
     delete_notification,
 )
 from core.config import Config
-
+from collections import deque
+import time
 
 
 logging.basicConfig(level=logging.INFO)
@@ -46,6 +47,12 @@ last_org_results: dict[str, str] = {}
 request_counter = count(1)
 request_lock = asyncio.Lock()
 
+REPORT_COOLDOWN = 300       # 5 минут
+REPORT_DAILY_LIMIT = 5      # 5 обращений за 24 часа
+REPORT_DUPLICATE_PERIOD = 86400  # 24 часа
+
+report_history: dict[str, deque] = {}
+report_lock = asyncio.Lock()
 
 def get_admin_ids() -> set[int]:
     return config.get_admin_max_ids()
